@@ -1,0 +1,234 @@
+#include "Components/CReactionComponent.h"
+#include "Actors/Character/CCharacter.h"
+#include "CGameInstance.h"
+#include "DamageType/CDamageType.h"
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Enums/CESkillType.h"
+#include "Util/CLog.h"
+#include "Kismet/KismetMathLibrary.h"
+
+
+UCReactionComponent::UCReactionComponent()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+
+	static ConstructorHelpers::FObjectFinder<UCurveFloat>Curve_RimRight(TEXT("CurveFloat'/Game/Curves/Curve_Hit_RimRight.Curve_Hit_RimRight'"));
+	CurveFloat = Curve_RimRight.Object;
+}
+
+
+void UCReactionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//Set Property
+	{
+		owner = Cast<ACCharacter>(GetOwner());
+		check(owner);
+		gameInstance = Cast<UCGameInstance>(GetWorld()->GetGameInstance());
+		check(gameInstance);
+	}
+
+	//Set Delegate
+	{
+		//owner->OnTakeAnyDamage.AddDynamic(this, &UCReactionComponent::TakeDamage);
+		owner->OnTakePointDamage.AddDynamic(this, &UCReactionComponent::TakePointDamage);
+		owner->OnTakeRadialDamage.AddDynamic(this, &UCReactionComponent::TakeRadialDamage);
+	}
+
+	//Set TimeLine for RimRight
+	{
+		if (CurveFloat)
+		{
+			FOnTimelineFloat TimelineProgress;
+			TimelineProgress.BindUFunction(this, FName("DoingRimRight"));
+			CurveTimeline.AddInterpFloat(CurveFloat, TimelineProgress);
+		}
+
+		for (int i = 0; i < owner->GetMesh()->GetNumMaterials(); ++i)
+		{
+			ownerMaterials.Emplace(owner->GetMesh()->CreateAndSetMaterialInstanceDynamic(i));
+		}
+
+		curveHalfLength = CurveTimeline.GetTimelineLength() / 2.0f;
+	}
+}
+
+
+void UCReactionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (CurveTimeline.IsPlaying() == true || CurveTimeline.IsReversing() == true)
+	{
+		CurveTimeline.TickTimeline(GetWorld()->GetDeltaSeconds());
+	}
+
+	if (bDoUpdateShake == true)
+	{
+		DoingShakeActor();
+	}
+}
+
+
+void UCReactionComponent::TakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser)
+{
+	//CDO를 절대 변경할일이 없이 때문에 const_cast사용
+	const UCDamageType * tempDamageType = const_cast<UCDamageType*>(Cast<UCDamageType>(DamageType));
+	if (OnHitted.IsBound() == true) OnHitted.Execute(tempDamageType->reactionType);
+	owner->GetCharacterStruct()->SetSubState_Hitted();
+	damagedActorLoc = DamageCauser->GetActorLocation();
+
+
+	/**	경직(Hit Stop) 처리 */
+	if (FMath::IsNearlyZero(tempDamageType->stiffness) == false)
+	{
+		StartShakeActor();
+		StartRimRight();
+		gameInstance->RequestAdjustTime(tempDamageType->stiffness, 0.0f, owner);
+	}
+
+	/**	Reaction유형에 따라 밀거나 올리기 */
+	ReactionHandle(tempDamageType->reactionType);
+
+	/**	넉백 */
+	
+	knockBackAmount = tempDamageType->knockBackPower;
+	KnockBackActor();
+
+
+	/**	맞는 파티클 생성 */
+	for (int i = 0;  i < tempDamageType->useParticleToEnemy.Num(); ++i)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			tempDamageType->useParticleToEnemy[i],
+			HitLocation,
+			ShotFromDirection.Rotation()
+		);
+	}
+
+
+}
+
+void UCReactionComponent::StartShakeActor()
+{
+	bDoUpdateShake = true;
+	originRelativeLoc = owner->GetMesh()->GetRelativeLocation();
+	this->SetComponentTickEnabled(true);
+}
+
+void UCReactionComponent::DoingShakeActor()
+{
+	owner->GetMesh()->SetRelativeLocation(originRelativeLoc + (FMath::VRand() * shakeAmount));
+}
+
+void UCReactionComponent::EndShakeActor()
+{
+	if (bDoUpdateShake == false) return;
+
+	bDoUpdateShake = false;
+	owner->GetMesh()->SetRelativeLocation(originRelativeLoc);
+}
+
+
+void UCReactionComponent::KnockBackActor()
+{
+	FVector tempNorm = (owner->GetActorLocation() - damagedActorLoc).GetSafeNormal();
+	owner->AddActorWorldOffset(tempNorm * knockBackAmount);
+}
+
+
+void UCReactionComponent::SaveOwnerMaterial()
+{
+	
+	
+}
+
+void UCReactionComponent::StartRimRight()
+{
+	/**	림 라이트 */
+	if (CurveTimeline.IsPlaying() == true || CurveTimeline.IsReversing() == true)
+	{
+		if (CurveTimeline.GetPlayRate() < curveHalfLength)
+		{
+			CurveTimeline.Play();
+		}
+		else
+		{
+			CurveTimeline.Reverse();
+		}
+	}
+	else
+	{
+		CurveTimeline.PlayFromStart();
+	}
+}
+
+void UCReactionComponent::DoingRimRight(float value)
+{
+	for (UMaterialInstanceDynamic * data : ownerMaterials)
+	{
+		data->SetScalarParameterValue(FName("Fresnel_Alpha"), value);
+	}
+	
+}
+
+void UCReactionComponent::ReactionHandle(EReactionType reactionType)
+{
+	if(owner->GetMainState() == EMainState::AIR)
+	{
+		if (reactionType == EReactionType::SMASH_DOWN)
+		{
+			PushUp(FVector(0, 0, -2200));
+		}
+		else
+		{
+			PushUp(FVector(0, 0, 1200));
+		}
+	}
+	if (owner->GetMainState() == EMainState::GROUND)
+	{
+		if (reactionType == EReactionType::SMASH_UPPER)
+		{
+			PushUp(FVector(0,0,1350));
+		}
+		if (reactionType == EReactionType::STRONG)
+		{
+			owner->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), damagedActorLoc));
+			CLog::Log("STrong!!!");
+		}
+	}
+}
+
+
+void UCReactionComponent::PushUp(FVector pushDir)
+{
+	owner->GetCharacterMovement()->StopMovementImmediately();
+	owner->LaunchCharacter(pushDir, false, true);
+}
+
+
+//void UCReactionComponent::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+//{
+//	//CDO를 절대 변경할일이 없이 때문에 const_cast사용
+//	const UCDamageType * tempDamageType = const_cast<UCDamageType*>(Cast<UCDamageType>(DamageType));
+//	gameInstance->RequestAdjustTime(tempDamageType->stiffness, 0.0f, owner);
+//	CLog::Log("Take Damage!!");
+//}
+
+//이거 아직 안씀
+void UCReactionComponent::TakeRadialDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, FVector Origin, FHitResult HitInfo, AController* InstigatedBy, AActor* DamageCauser)
+{
+	//if (OnHitted.IsBound() == true) OnHitted.Execute();
+
+	//CDO를 절대 변경할일이 없이 때문에 const_cast사용
+	const UCDamageType * tempDamageType = const_cast<UCDamageType*>(Cast<UCDamageType>(DamageType));
+	gameInstance->RequestAdjustTime(tempDamageType->stiffness, 0.0f, owner);
+
+	damagedActorLoc = DamageCauser->GetActorLocation();
+	knockBackAmount = tempDamageType->knockBackPower;
+
+	StartShakeActor();
+}

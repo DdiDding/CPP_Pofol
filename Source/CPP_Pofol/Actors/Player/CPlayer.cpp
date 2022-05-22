@@ -272,7 +272,7 @@ void ACPlayer::Debug() {
 	float arrowLength = 400.0f;
 	float arrowSize = 2000.0f;
 	float arrowThick = 10.0f;
-
+	
 	//Debug States
 	{
 		//(int)&characterStructs23
@@ -348,7 +348,6 @@ void ACPlayer::Debug() {
 	CLog::ScreenLog(GetActorLocation(), 0.0f, FColor::Blue, L"Location : ");
 
 	CLog::ScreenLog(allTime, 0.0f, FColor::Blue, L"Time : ");
-	
 
 }
 

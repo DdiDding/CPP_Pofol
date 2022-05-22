@@ -108,8 +108,6 @@ void UCReactionComponent::TakePointDamage(AActor* DamagedActor, float Damage, cl
 			ShotFromDirection.Rotation()
 		);
 	}
-
-
 }
 
 void UCReactionComponent::StartShakeActor()
@@ -185,14 +183,17 @@ void UCReactionComponent::ReactionHandle(EReactionType reactionType)
 		}
 		else
 		{
-			PushUp(FVector(0, 0, 1200));
+			owner->GetCharacterMovement()->StopMovementImmediately();
+			PushUp(FVector(0, 0, 250));
+			SetTimerForGravityInAirState();
 		}
 	}
 	if (owner->GetMainState() == EMainState::GROUND)
 	{
 		if (reactionType == EReactionType::SMASH_UPPER)
 		{
-			PushUp(FVector(0,0,1350));
+			PushUp(FVector(0,0, upperAmount));
+			SetTimerForGravityInAirState();
 		}
 		if (reactionType == EReactionType::STRONG)
 		{
@@ -209,6 +210,29 @@ void UCReactionComponent::PushUp(FVector pushDir)
 	owner->LaunchCharacter(pushDir, false, true);
 }
 
+
+void UCReactionComponent::SetTimerForGravityInAirState()
+{
+	/**	||이전에 중력 조절 타이머가 실행되었는지 확인하여 실행중이라면 종료시킵니다. || */
+	if (GetWorld()->GetTimerManager().IsTimerActive(gravityHandle) == true)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(gravityHandle);
+	}
+
+	/**	||중력을 낮게 조정하고 타이머를 실행시킵니다. || */
+	owner->GetCharacterMovement()->GravityScale = upperGravity;
+	GetWorld()->GetTimerManager().SetTimer(gravityHandle, this, 
+		&UCReactionComponent::SetOriginGravity, GetWorld()->GetDeltaSeconds(), true);
+}
+
+void UCReactionComponent::SetOriginGravity()
+{
+	if (owner->GetVelocity().Z < 10.0f)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(gravityHandle);
+		owner->GetCharacterMovement()->GravityScale = 3.0f;
+	}
+}
 
 //void UCReactionComponent::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 //{

@@ -71,18 +71,33 @@ private://member function
 
 	void PushUp(FVector pushDir);
 
+	/** 공중에서 Hitted되었을 때 체공시간을 높이기 위한 중력 조절 값을 세팅하고 
+	 *	원상태의 중력값을 타이머를 세팅하여 다시 돌려놓습니다.
+	 */
+	UFUNCTION()
+	void SetTimerForGravityInAirState();
+
+	/* 원래의 중력으로 되돌립니다.*/
+	UFUNCTION()
+	void SetOriginGravity();
+
 ////////////////////////////////////////////////////////////////////////////////
 public://Get & Set Func
 
 
 ////////////////////////////////////////////////////////////////////////////////
 private://member property
+
 	UPROPERTY()
 	ACCharacter * owner;
 
 	UPROPERTY()
 	UCGameInstance * gameInstance;
 	
+	//데미지를 준 적의 위치
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Damaget Info", meta = (AllowPrivateAccess = true))
+	FVector damagedActorLoc;
+
 	//ShakeActor를 업데이트 할것인지? - true면 Tick에서 업데이트를 한다.
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "ShakeActor", meta = (AllowPrivateAccess = true))
 	bool bDoUpdateShake{ false };
@@ -93,12 +108,6 @@ private://member property
 	//쉐이크흔들기전의 기존 Relative Location
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "ShakeActor", meta = (AllowPrivateAccess = true))
 	FVector originRelativeLoc;
-
-	//데미지를 준 적의 위치
-	FVector damagedActorLoc;
-
-	//넉백 양
-	float knockBackAmount;
 
 	//림라이트를 키기위한 메시 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Rim Right", meta = (AllowPrivateAccess = true))
@@ -112,6 +121,27 @@ private://member property
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Rim Right", meta = (AllowPrivateAccess = true))
 	float curveHalfLength;
+
+	//중력을 조절하기 위한 타이머의 핸들
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
+	FTimerHandle gravityHandle;
+
+	//공중에서 맞았을 때 체공시간을 높이기 위해 낮춰질 중력값
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
+	float upperGravity{ 0.9f };
+
+	//중력이 낮게 조정되고 다시 원래 중력값으로 되돌아가기 까지의 시간
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
+	float gravityTimerInRate = 0.3f;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
+		float upperAmount{ 0.0f };
+
+	//넉백 양
+	float knockBackAmount;
+////////////////////////////////////////////////////////////////////////////////
+public://Debug Property
+	
 };
 
 

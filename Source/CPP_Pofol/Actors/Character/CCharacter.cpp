@@ -17,7 +17,7 @@ ACCharacter::ACCharacter()
 	{
 		weaponManagerComponent8 = CreateDefaultSubobject<UCWeaponManagerComponent>(TEXT("WeaponManagerComponent"));
 		skillManagerComponent7 = CreateDefaultSubobject<UCSkillManagerComponent>(TEXT("SkillManagerComponent"));
-		reactionComponent = CreateDefaultSubobject<UCReactionComponent>(TEXT("ReactionComponent"));
+		reactionComponent1 = CreateDefaultSubobject<UCReactionComponent>(TEXT("ReactionComponent"));
 	}
 
 	//Setting MovementComponent
@@ -33,19 +33,18 @@ ACCharacter::ACCharacter()
 
 }
 
-void ACCharacter::BeginPlay()
+void ACCharacter::PostInitializeComponents()
 {
-	Super::BeginPlay();
-
+	Super::PostInitializeComponents();
 	//Setting characterStructs
 	{
 		characterStructs23 = NewObject<UCCharacterStruct>(this, UCCharacterStruct::StaticClass(), TEXT("characterStructs"));
 		lastRotationMode = GET_STATE(RotationMode);
 	}
-	 
-	//reactionComponent = NewObject<UCReactionComponent>(this, UCReactionComponent::StaticClass());
-	//check(reactionComponent);
-	//reactionComponent->RegisterComponent();//동적으로 만들때 사용한다.
+
+	//reactionComponent1 = NewObject<UCReactionComponent>(this, UCReactionComponent::StaticClass());
+	//check(reactionComponent1);
+	//reactionComponent1->RegisterComponent();//동적으로 만들때 사용한다.
 
 
 	particleManagerComponent = NewObject<UCParticleManagerComponent>(this, UCParticleManagerComponent::StaticClass());
@@ -53,6 +52,28 @@ void ACCharacter::BeginPlay()
 	particleManagerComponent->RegisterComponent();
 
 	animnInst = GetMesh()->GetAnimInstance();
+}
+
+void ACCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	////Setting characterStructs
+	//{
+	//	characterStructs23 = NewObject<UCCharacterStruct>(this, UCCharacterStruct::StaticClass(), TEXT("characterStructs"));
+	//	lastRotationMode = GET_STATE(RotationMode);
+	//}
+	// 
+	////reactionComponent1 = NewObject<UCReactionComponent>(this, UCReactionComponent::StaticClass());
+	////check(reactionComponent1);
+	////reactionComponent1->RegisterComponent();//동적으로 만들때 사용한다.
+
+
+	//particleManagerComponent = NewObject<UCParticleManagerComponent>(this, UCParticleManagerComponent::StaticClass());
+	//check(particleManagerComponent);
+	//particleManagerComponent->RegisterComponent();
+
+	//animnInst = GetMesh()->GetAnimInstance();
 }
 
 void ACCharacter::Tick(float DeltaTime)

@@ -49,6 +49,7 @@ public://Virtual Func
 
 protected:
 
+	virtual void PostInitializeComponents() final;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnJumped_Implementation() final;
@@ -66,7 +67,7 @@ protected://Components
 	class UCWeaponManagerComponent * weaponManagerComponent8;
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Components", meta = (AllowPrivateAccess = true))
-	class UCReactionComponent * reactionComponent;
+	class UCReactionComponent * reactionComponent1;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	class UCParticleManagerComponent * particleManagerComponent;
@@ -172,7 +173,7 @@ public://Get & Set
 	void SetLastRotationMode(ERotationMode mode);
 
 	UFUNCTION(BlueprintCallable, Category = "Get Component")
-	UCReactionComponent * GetReactionComponent() { return reactionComponent; }
+	UCReactionComponent * GetReactionComponent() { return reactionComponent1; }
 
 ////////////////////////////////////////////////////////////////////////////////
 protected://member function

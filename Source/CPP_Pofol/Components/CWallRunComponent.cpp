@@ -18,13 +18,13 @@ UCWallRunComponent::UCWallRunComponent()
 	finalWall.Init();
 	finalWall.Distance = radius;
 	
-	static ConstructorHelpers::FObjectFinder<UAnimMontage>LEFT_WALLJUMP(TEXT("AnimMontage'/Game/Actors/Player/Animation/WallRun/WallJump/M_wallJumpLeft.M_wallJumpLeft'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage>LEFT_WALLJUMP(TEXT("AnimMontage'/Game/Resources/Animaitions/Animation_HumanType/WallRun/WallJump/M_wallJumpLeft.M_wallJumpLeft'"));
 	leftWallJump = LEFT_WALLJUMP.Object;
-	static ConstructorHelpers::FObjectFinder<UAnimMontage>RIGHT_WALLJUMP(TEXT("AnimMontage'/Game/Actors/Player/Animation/WallRun/WallJump/M_wallJumpRight.M_wallJumpRight'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage>RIGHT_WALLJUMP(TEXT("AnimMontage'/Game/Resources/Animaitions/Animation_HumanType/WallRun/WallJump/M_wallJumpRight.M_wallJumpRight'"));
 	rightWallJump = RIGHT_WALLJUMP.Object;
-	static ConstructorHelpers::FObjectFinder<UAnimMontage>VERTICAL_WALLJUMP(TEXT("AnimMontage'/Game/Actors/Player/Animation/WallRun/WallJump/M_wallJumpVertical.M_wallJumpVertical'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage>VERTICAL_WALLJUMP(TEXT("AnimMontage'/Game/Resources/Animaitions/Animation_HumanType/WallRun/WallJump/M_wallJumpVertical.M_wallJumpVertical'"));
 	verticalWallJump = VERTICAL_WALLJUMP.Object;
-	static ConstructorHelpers::FObjectFinder<UAnimMontage>WALL_EXIT(TEXT("AnimMontage'/Game/Actors/Player/Animation/WallRun/M_Wall_Exit.M_Wall_Exit'"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage>WALL_EXIT(TEXT("AnimMontage'/Game/Resources/Animaitions/Animation_HumanType/WallRun/WallMove/M_Wall_Exit.M_Wall_Exit'"));
 	wallExit = WALL_EXIT.Object;
 }
 

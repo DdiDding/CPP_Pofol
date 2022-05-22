@@ -86,11 +86,11 @@ public://µð¹ö±×
 
 ////////////////////////////////////////////////////////////////////////////////
 public://SubMovementComponent
-	UCWallRunComponent * GetWallRunComponent() { return wallRunComponent6; }
+	UCWallRunComponent * GetWallRunComponent() { return wallRunComponent; }
 
 private:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, meta = (AllowPrivateAccess = true))
-	UCWallRunComponent * wallRunComponent6;
+	UCWallRunComponent * wallRunComponent;
 
 	float allTime{ 0.0f };
 

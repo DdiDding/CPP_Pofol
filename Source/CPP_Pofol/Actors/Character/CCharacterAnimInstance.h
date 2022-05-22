@@ -15,22 +15,22 @@ enum class ERotationMode : uint8;
 //enum class EReactionType : uint8;//이것만 안됨 ㅠ
 
 USTRUCT(BlueprintType)
-struct FVelocityBlend2
+struct FVelocityBlend
 {
 	GENERATED_BODY()
 
-		UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		float F;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		float B;
+	float F;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		float L;
+	float B;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		float R;
+	float L;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	float R;
 };
 
 USTRUCT(BlueprintType)
-struct FLeanAmount2
+struct FLeanAmount
 {
 	GENERATED_BODY()
 
@@ -224,7 +224,7 @@ protected://member Value
 protected:
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UpdateMovementGround")
-	FVelocityBlend2 velocityBlend;
+	FVelocityBlend velocityBlend;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "UpdateMovementGround")
 	float velBlendInterpSpeed{ 12.0f };
@@ -233,7 +233,7 @@ protected:
 	FVector relativeAccelerationAmount;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UpdateMovementGround")
-	FLeanAmount2 leanAmount;
+	FLeanAmount leanAmount;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "UpdateMovementGround")
 	float leanAmountInterpSpeed{ 15.0f };
@@ -248,12 +248,6 @@ protected:
 	float standingPlayRate{ 0.0f };
 
 protected:
-
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Blend Curves")
-	UCurveFloat * strideBlendWalk;
-
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Blend Curves")
-	UCurveFloat * strideBlendRun;
 
 	//공통적으로 사용할 수 있는 커브
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Blend Curves")

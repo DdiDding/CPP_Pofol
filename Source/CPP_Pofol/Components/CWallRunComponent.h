@@ -108,7 +108,7 @@ private:
 	
 
 //////////////////////////////////////////////////////////////////////////
-private://member Function & Meber Property
+private://member Function
 
 	void StartWallRun();
 
@@ -121,19 +121,20 @@ private://member Function & Meber Property
 	/**WallRun중에 점프하는 기능*/
 	void WallJump();
 
-private:
+
+//////////////////////////////////////////////////////////////////////////
+private://Meber Property
 
 	/**Owner Object의 데이터를 변경하지 않기에 여기에 변수로 저장해 편하게 사용*/
 	ACPlayer * owner;
 
-	UPROPERTY(BlueprintReadOnly, VisibleDefaultsOnly, Category = "Anim Montage", meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Anim Montage", meta = (AllowPrivateAccess = true))
 	UAnimMontage * leftWallJump;
-	UPROPERTY(BlueprintReadOnly, VisibleDefaultsOnly, Category = "Anim Montage", meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Anim Montage", meta = (AllowPrivateAccess = true))
 	UAnimMontage * rightWallJump;
-	UPROPERTY(BlueprintReadOnly, VisibleDefaultsOnly, Category = "Anim Montage", meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Anim Montage", meta = (AllowPrivateAccess = true))
 	UAnimMontage * verticalWallJump;
-
-	UPROPERTY(BlueprintReadOnly, VisibleDefaultsOnly, Category = "Anim Montage", meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Anim Montage", meta = (AllowPrivateAccess = true))
 	UAnimMontage * wallExit;
 
 	/**wallrun에 가장 적합한 벽의 HitResult를 담는 변수, wall run중에 업데이트된다.*/

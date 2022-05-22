@@ -57,23 +57,7 @@ void ACCharacter::PostInitializeComponents()
 void ACCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	////Setting characterStructs
-	//{
-	//	characterStructs23 = NewObject<UCCharacterStruct>(this, UCCharacterStruct::StaticClass(), TEXT("characterStructs"));
-	//	lastRotationMode = GET_STATE(RotationMode);
-	//}
-	// 
-	////reactionComponent1 = NewObject<UCReactionComponent>(this, UCReactionComponent::StaticClass());
-	////check(reactionComponent1);
-	////reactionComponent1->RegisterComponent();//동적으로 만들때 사용한다.
-
-
-	//particleManagerComponent = NewObject<UCParticleManagerComponent>(this, UCParticleManagerComponent::StaticClass());
-	//check(particleManagerComponent);
-	//particleManagerComponent->RegisterComponent();
-
-	//animnInst = GetMesh()->GetAnimInstance();
+	
 }
 
 void ACCharacter::Tick(float DeltaTime)
@@ -154,20 +138,20 @@ void ACCharacter::UpdateSubState()
 	if (animnInst == nullptr) return;
 	
 	float hittedCurveValue = animnInst->GetCurveValue(FName("Hitted_Curve"));
-	if (GET_STATE(SubState) == ESubState::NONE && 0.9f < hittedCurveValue)
+	if (GET_STATE(SubState) == ESubState::NONE && 0.1f < hittedCurveValue)
 	{
 		SET_STATE(SubState, Hitted);
 		return;
 	}
 	if (GET_STATE(SubState) == ESubState::HITTED )
 	{
-		if (1.9f < hittedCurveValue)
+		if (1.1f < hittedCurveValue)
 		{
 			SET_STATE(SubState, LayDown);
 			RagDollStart();
 			return;
 		}
-		if(hittedCurveValue < 1.0f)
+		if(hittedCurveValue == 0.0f)
 		{
 			SET_STATE(SubState,None);
 			return;
@@ -385,7 +369,7 @@ void ACCharacter::RagDollStart()
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	SET_STATE(SubState, LayDown);
 
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_PhysicsBody);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, true);
@@ -452,10 +436,7 @@ void ACCharacter::RagDoll_SetCapusleLoc()
 	bRagdollOnGround = true;
 	float interpSpeed = 15.0f;
 	
-	SetActorLocationAndRotation(
-		FMath::VInterpTo(GetActorLocation(), setLoc, deltaTime, interpSpeed),
-		FMath::RInterpTo(GetActorRotation(), TargetRagdolRot, deltaTime, interpSpeed)
-		);
+	SetActorLocationAndRotation(setLoc, TargetRagdolRot);
 }
 
 void ACCharacter::RagDollEnd()

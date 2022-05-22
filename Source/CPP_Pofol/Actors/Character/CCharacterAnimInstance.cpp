@@ -148,7 +148,7 @@ void UCCharacterAnimInstance::UpdateFootIK()
 ********************************************************************************************* */
 void UCCharacterAnimInstance::CalculateVelocityBlend()
 {
-	FVelocityBlend2 tempVelocityBlend;
+	FVelocityBlend tempVelocityBlend;
 	FVector tempVelocity = ownerVelocity;
 	tempVelocity = ownerRotation.UnrotateVector(tempVelocity);
 	FVector tempAbs = tempVelocity.GetAbs();
@@ -205,12 +205,6 @@ void UCCharacterAnimInstance::CalculateStrideBlend()
 {
 	if (strideBlendNormal == nullptr) return;
 	strideBlend = strideBlendNormal->GetFloatValue(ownerSpeed / ownerAnimatedWalkSpeed);
-
-	/*strideBlend = FMath::Lerp(
-		strideBlendWalk->GetFloatValue(ownerSpeed),
-		strideBlendRun->GetFloatValue(ownerSpeed),
-		GetAnimcurveClamped(FName("Weight_Gait"), -1.0f, 0.0f, 1.0f)
-	);*/
 }
 void UCCharacterAnimInstance::CalculateStandingPlayRate()
 {
@@ -380,7 +374,7 @@ void UCCharacterAnimInstance::SetFootLocking(FName EnableCurveName, FName footLo
 	 */
 
 	if (0.0f < GetCurveValue(EnableCurveName) == false)
-	{///Foot IK 활성화 되지 않으면
+	{///Foot IK 활성화 되지 않으면 [=(curveValue = 0.0f)]
 		currentFootLockAlpha = 0.0f;
 		return;
 	}

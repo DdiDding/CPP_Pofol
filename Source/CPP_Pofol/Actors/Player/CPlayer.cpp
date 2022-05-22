@@ -48,29 +48,11 @@ ACPlayer::ACPlayer()
 		GetMesh()->SetSkeletalMesh(SK_CyberSamurai.Object);
 	}
 
-	//Camera Init
-	{
-		/*CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-		CameraSpringArm->SetupAttachment(GetMesh());
-		CameraSpringArm->TargetArmLength = 500.0f;
-		CameraSpringArm->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 220.0f), FRotator(0.0f, 90.0f, 0.0f));
-		CameraSpringArm->bUsePawnControlRotation = true;
-		CameraSpringArm->bEnableCameraLag = true;
-		CameraSpringArm->bEnableCameraRotationLag = true;
-		CameraSpringArm->CameraLagSpeed = 2.0f;
-		CameraSpringArm->CameraLagMaxDistance = 130.0f;
-
-		Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-		Camera->SetupAttachment(CameraSpringArm);
-
-		CameraSpringArm->bDoCollisionTest = false;*/
-	}
-
 	//SubMovementComponent
 	{
-		wallRunComponent6 = CreateDefaultSubobject<UCWallRunComponent>(TEXT("WallRunComponent"));
-		//wallRunComponent6의 Tick이 끝나야 CPlayer의 Tick을 실행한다는 종속성 설정
-		AddTickPrerequisiteComponent(wallRunComponent6);
+		wallRunComponent = CreateDefaultSubobject<UCWallRunComponent>(TEXT("WallRunComponent"));
+		//wallRunComponent의 Tick이 끝나야 CPlayer의 Tick을 실행한다는 종속성 설정
+		AddTickPrerequisiteComponent(wallRunComponent);
 	}
 }
 
@@ -115,7 +97,7 @@ void ACPlayer::Move_FB(float axisValue)
 	}
 	if (GET_STATE(SubState) == ESubState::WALLRUN)
 	{
-		Direction = wallRunComponent6->GetFinalDir(true, axisValue);
+		Direction = wallRunComponent->GetFinalDir(true, axisValue);
 		axisValue = FMath::Abs(axisValue);
 	}
 
@@ -134,7 +116,7 @@ void ACPlayer::Move_RL(float axisValue)
 	}
 	if (GET_STATE(SubState) == ESubState::WALLRUN)
 	{
-		Direction = wallRunComponent6->GetFinalDir(false, axisValue);
+		Direction = wallRunComponent->GetFinalDir(false, axisValue);
 		axisValue = FMath::Abs(axisValue);
 	}
 
@@ -144,7 +126,7 @@ void ACPlayer::Move_RL(float axisValue)
 void ACPlayer::Press_Spacebar( )
 {
 	if (characterStructs23 != nullptr) { SET_STATE(MainState,Air); }
-	if (wallRunComponent6 != nullptr) {	if (wallRunComponent6->StartSubState() == true)	return;	}
+	if (wallRunComponent != nullptr) {	if (wallRunComponent->StartSubState() == true)	return;	}
 
 	Jump();
 }
@@ -247,7 +229,7 @@ void ACPlayer::SetLocation()
 	if(characterStructs23 == nullptr) return;
 	if (GET_STATE(SubState) == ESubState::WALLRUN)
 	{
-		wallRunComponent6->UpdateLocation();
+		wallRunComponent->UpdateLocation();
 	}
 }
 
@@ -258,7 +240,7 @@ bool ACPlayer::AddUpdateGroundedRotation()
 
 	if (GET_STATE(SubState) == ESubState::WALLRUN)
 	{
-		wallRunComponent6->UpdateRotation();
+		wallRunComponent->UpdateRotation();
 		return true;
 	}
 

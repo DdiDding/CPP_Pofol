@@ -80,20 +80,22 @@ void UCReactionComponent::TakePointDamage(AActor* DamagedActor, float Damage, cl
 	owner->GetCharacterStruct()->SetSubState_Hitted();
 	damagedActorLoc = DamageCauser->GetActorLocation();
 
+	/**	RimRight 처리 */
+	StartRimRight();
+
 
 	/**	경직(Hit Stop) 처리 */
 	if (FMath::IsNearlyZero(tempDamageType->stiffness) == false)
 	{
 		StartShakeActor();
-		StartRimRight();
 		gameInstance->RequestAdjustTime(tempDamageType->stiffness, 0.0f, owner);
 	}
 
 	/**	Reaction유형에 따라 밀거나 올리기 */
 	ReactionHandle(tempDamageType->reactionType);
 
+
 	/**	넉백 */
-	
 	knockBackAmount = tempDamageType->knockBackPower;
 	KnockBackActor();
 

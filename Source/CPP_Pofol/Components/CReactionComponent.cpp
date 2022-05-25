@@ -112,6 +112,10 @@ void UCReactionComponent::TakePointDamage(AActor* DamagedActor, float Damage, cl
 	}
 }
 
+/*********************************************************************************************
+	* Shake Actor
+********************************************************************************************* */
+
 void UCReactionComponent::StartShakeActor()
 {
 	bDoUpdateShake = true;
@@ -133,18 +137,9 @@ void UCReactionComponent::EndShakeActor()
 }
 
 
-void UCReactionComponent::KnockBackActor()
-{
-	FVector tempNorm = (owner->GetActorLocation() - damagedActorLoc).GetSafeNormal();
-	owner->AddActorWorldOffset(tempNorm * knockBackAmount);
-}
-
-
-void UCReactionComponent::SaveOwnerMaterial()
-{
-	
-	
-}
+/*********************************************************************************************
+	* Rim Right
+********************************************************************************************* */
 
 void UCReactionComponent::StartRimRight()
 {
@@ -172,8 +167,22 @@ void UCReactionComponent::DoingRimRight(float value)
 	{
 		data->SetScalarParameterValue(FName("Fresnel_Alpha"), value);
 	}
+
+}
+
+
+void UCReactionComponent::KnockBackActor()
+{
+	FVector tempNorm = (owner->GetActorLocation() - damagedActorLoc).GetSafeNormal();
+	owner->AddActorWorldOffset(tempNorm * knockBackAmount);
+}
+
+void UCReactionComponent::SaveOwnerMaterial()
+{
+	
 	
 }
+
 
 void UCReactionComponent::ReactionHandle(EReactionType reactionType)
 {
@@ -200,7 +209,6 @@ void UCReactionComponent::ReactionHandle(EReactionType reactionType)
 		if (reactionType == EReactionType::STRONG)
 		{
 			owner->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), damagedActorLoc));
-			CLog::Log("STrong!!!");
 		}
 	}
 }
@@ -208,6 +216,7 @@ void UCReactionComponent::ReactionHandle(EReactionType reactionType)
 
 void UCReactionComponent::PushUp(FVector pushDir)
 {
+	CLog::Log(pushDir, "pushDir!! : ");
 	owner->GetCharacterMovement()->StopMovementImmediately();
 	owner->LaunchCharacter(pushDir, false, true);
 }

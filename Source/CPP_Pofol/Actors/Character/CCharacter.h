@@ -204,6 +204,9 @@ protected://member function
 	UFUNCTION(BlueprintCallable, Category = "Rag Doll")
 	void RagDollEnd();
 
+	UFUNCTION(Category = "Rag Doll")
+	void RagDollEndTimer();
+
 	UFUNCTION(BlueprintCallable, Category = "Rag Doll")
 	virtual UAnimMontage * GetGetUpAnimaMontage(bool isFaceUp) { return nullptr; };
 
@@ -266,15 +269,34 @@ protected://member property
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Ragdoll Value")
 	bool bRagdollOnGround{ false };
 
-	//RagDoll상태에서 일어날 수 있는지 
+	//Ragdoll을 자연스럽게 해제하기 위한 핸들
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Ragdoll Value")
+	FTimerHandle endRagdollHandle;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Ragdoll Value")
+	float ragDollWeight{ 0.f };
+
+	//RagDoll상태에서 일어날 수 있는지 
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "State Value")
 	bool bCanGetUp{ false };
+
+	/*	지형의 위치에 따라 Pelvis의 Z위치가 달라지기에 Ground일때 땅에 닿아있는 부분과 캡슐 반의 길이를 더한
+	 *	위치에서 Pelvis의 위치에 따라 LayDown을 판별할 Z값을 비율로 구합니다.
+	 *	만약 0.2라면 캡슐반의 위치에서부터 0.2비율만큼 내려간 곳이 판별위치가 됩니다.
+	 */
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "State Value")
+	float ratioDeterminLayDownZ{ 0.5f };
 	
+protected:
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Character Information")
+	float halfCapusleHeight{ 0.f };
+
 private:
 
 	float deltaTime;
 
-	const float gravityScale{ 3.0f };
+	const float gravityScale{ 3.f };
 
 	ERotationMode lastRotationMode;
 

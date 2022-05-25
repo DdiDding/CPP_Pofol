@@ -123,7 +123,7 @@ private://member property
 	float curveHalfLength;
 
 	//중력을 조절하기 위한 타이머의 핸들
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Launch Value", meta = (AllowPrivateAccess = true))
 	FTimerHandle gravityHandle;
 
 	//공중에서 맞았을 때 체공시간을 높이기 위해 낮춰질 중력값
@@ -135,7 +135,7 @@ private://member property
 	float gravityTimerInRate = 0.3f;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
-		float upperAmount{ 0.0f };
+	float upperAmount{ 0.0f };
 
 	//넉백 양
 	float knockBackAmount;

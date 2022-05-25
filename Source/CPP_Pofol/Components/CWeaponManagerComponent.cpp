@@ -115,8 +115,6 @@ void UCWeaponManagerComponent::UpdateTrace_PointDamage()
 					{///자기 자신이 아니면 진행
 						if (hitsEnemy.Find(hit.GetActor()) == INDEX_NONE)
 						{///이미 맞은 적이 아니라면 저장
-							CLog::Log(hit.GetActor()->GetName(),"Hit!! : ");
-							
 							hitsEnemy.Emplace(hit.GetActor());
 							if (OnDamageDelegate.IsBound() == true) OnDamageDelegate.Execute(hit, EAttackType::POINT_DAMAGE);
 						}
@@ -151,7 +149,6 @@ void UCWeaponManagerComponent::UpdateTrace_MeleeRangeDamage(FVector addLoc, floa
 			owner->GetActorForwardVector(),
 			(data.GetActor()->GetActorLocation() - owner->GetActorLocation()).GetSafeNormal2D() ))
 		{///캐릭터 전방에 있는 적만 데미지 이벤트 실행
-			CLog::Log(data.GetActor()->GetName(), "Hit range! : ");
 			if (OnDamageDelegate.IsBound() == true) OnDamageDelegate.Execute(data, EAttackType::RANGE_DAMAGE);
 		}
 	}
@@ -316,6 +313,5 @@ void UCWeaponManagerComponent::Debug()
 		test += currentWeapon->weaponName;
 		CLog::ScreenLog(test, -1.0f, FColor::Red);
 	}
-
 	
 }

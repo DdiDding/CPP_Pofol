@@ -56,7 +56,10 @@ private://member function
 	void DoingShakeActor();
 
 	UFUNCTION()
-	void KnockBackActor();
+	void KnockBackActor_Forward(float forwardAmount);
+
+	UFUNCTION()
+	void KnockBackActor_Upper(float upAmount);
 
 	UFUNCTION()
 	void SaveOwnerMaterial();
@@ -67,9 +70,8 @@ private://member function
 	UFUNCTION()
 	void DoingRimRight(float value);
 
-	void ReactionHandle(EReactionType reactionType);
-
-	void PushUp(FVector pushDir);
+	UFUNCTION()
+	void ReactionHandle(const EReactionType & reactionType, const FVector & knockBackAmount);
 
 	/** 공중에서 Hitted되었을 때 체공시간을 높이기 위한 중력 조절 값을 세팅하고 
 	 *	원상태의 중력값을 타이머를 세팅하여 다시 돌려놓습니다.
@@ -134,11 +136,7 @@ private://member property
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
 	float gravityTimerInRate = 0.3f;
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
-	float upperAmount{ 0.0f };
 
-	//넉백 양
-	float knockBackAmount;
 ////////////////////////////////////////////////////////////////////////////////
 public://Debug Property
 	

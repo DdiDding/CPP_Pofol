@@ -22,9 +22,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float stiffness;
 
-	//밀려나는 정도
+	//밀려나는 정도 X = 전방으로 밀려나는 힘, Z = 위로 띄워지는힘(Upper Atk에만 사용)
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	float knockBackPower;
+	FVector knockBackPower;
 
 	//무슨 공격 타입인지
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)

@@ -17,7 +17,7 @@ ACCharacter::ACCharacter()
 	{
 		weaponManagerComponent8 = CreateDefaultSubobject<UCWeaponManagerComponent>(TEXT("WeaponManagerComponent"));
 		skillManagerComponent7 = CreateDefaultSubobject<UCSkillManagerComponent>(TEXT("SkillManagerComponent"));
-		reactionComponent1 = CreateDefaultSubobject<UCReactionComponent>(TEXT("ReactionComponent"));
+		reactionComponent = CreateDefaultSubobject<UCReactionComponent>(TEXT("ReactionComponent"));
 	}
 
 	//Setting MovementComponent
@@ -38,13 +38,13 @@ void ACCharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	//Setting characterStructs
 	{
-		characterStructs23 = NewObject<UCCharacterStruct>(this, UCCharacterStruct::StaticClass(), TEXT("characterStructs"));
+		characterStructs = NewObject<UCCharacterStruct>(this, UCCharacterStruct::StaticClass(), TEXT("characterStructs"));
 		lastRotationMode = GET_STATE(RotationMode);
 	}
 
-	//reactionComponent1 = NewObject<UCReactionComponent>(this, UCReactionComponent::StaticClass());
-	//check(reactionComponent1);
-	//reactionComponent1->RegisterComponent();//동적으로 만들때 사용한다.
+	//reactionComponent = NewObject<UCReactionComponent>(this, UCReactionComponent::StaticClass());
+	//check(reactionComponent);
+	//reactionComponent->RegisterComponent();//동적으로 만들때 사용한다.
 
 
 	particleManagerComponent = NewObject<UCParticleManagerComponent>(this, UCParticleManagerComponent::StaticClass());
@@ -99,7 +99,7 @@ void ACCharacter::Landed(const FHitResult & Hit)
 {
 	Super::Landed(Hit);
 
-	if (characterStructs23 == nullptr) return;
+	if (characterStructs == nullptr) return;
 	if (OnLand.IsBound() == true) OnLand.Execute();
 	//PutBackLastRotationMode();
 	SET_STATE(MainState, Ground);
@@ -109,7 +109,7 @@ void ACCharacter::Falling()
 {
 	Super::Falling();
 
-	if (characterStructs23 == nullptr) return;
+	if (characterStructs == nullptr) return;
 
 	//나중에 공중에서의 Rotation정의하기
 	/*SetLastRotationMode(GET_STATE(RotationMode));
@@ -122,51 +122,28 @@ void ACCharacter::Falling()
 
 void ACCharacter::UpdateSubState()
 {
-	if (characterStructs23 == nullptr) return;
+	if (this == UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)) return;
+	if (characterStructs == nullptr) return;
 	if (animnInst == nullptr) return;
 
-	//CLog::Log("///////////////////");
 	float hittedCurveValue = animnInst->GetCurveValue(FName("Hitted_Curve"));
 	CLog::Log(hittedCurveValue, "hittedCurveValue : ");
+	CLog::Log(*UEnum::GetDisplayValueAsText(GET_STATE(SubState)).ToString());
 
 	if (GET_STATE(SubState) == ESubState::NONE && 0.0f < hittedCurveValue)
 	{
-		CLog::Log("Start Hitted!!");
 		SET_STATE(SubState, Hitted);
+		RagDollStart();
 		return;
 	}
 	if (GET_STATE(SubState) == ESubState::HITTED )
 	{
-		/*if (1.1f < hittedCurveValue)
+		if(hittedCurveValue <= 0.5f)
 		{
-			SET_STATE(SubState, LayDown);
-			RagDollStart();
-			return;
-		}*/
-		if(hittedCurveValue == 0.0f)
-		{
-			//CLog::Log("return none!");
-			RagDollEnd();
 			SET_STATE(SubState,None);
+			RagDollEnd();
 			return;
 		}
-
-		//if (GET_STATE(MainState) == EMainState::GROUND)
-		//{
-		//	float charHalfZ = GetActorLocation().Z;
-		//	float groundZ = GetActorLocation().Z - halfCapusleHeight;
-		//	float determinLayDownZ = FMath::Lerp(charHalfZ, groundZ, ratioDeterminLayDownZ);
-
-		//	/*CLog::Log(GetMesh()->GetSocketLocation(FName("pelvis")).Z, "pevis Loc : ");
-		//	CLog::Log(determinLayDownZ, "determinLayDownZ : ");
-		//	CLog::Log(groundZ, "groundZ : ");
-		//	CLog::Log(GetActorLocation().Z, "GetActorLocation().Z : ");
-		//	CLog::Log("////////////////////////////////");*/
-		//	if (GetMesh()->GetSocketLocation(FName("pelvis")).Z < determinLayDownZ)
-		//	{
-		//		SET_STATE(SubState, LayDown);
-		//	}
-		//}
 	}
 }
 
@@ -210,7 +187,7 @@ void ACCharacter::UpdateRotation()
 	float interpSpeed = currentMovementSettings.rotationRateCurve->GetFloatValue(GetMappedSpeed());
 	FRotator resultRot = FRotator::ZeroRotator;
 
-	if (characterStructs23 == nullptr) return;
+	if (characterStructs == nullptr) return;
 	if (GET_STATE(RotationMode) == ERotationMode::NONE) { return; }
 	if (GET_STATE(RotationMode) == ERotationMode::VELOCITY)
 	{
@@ -238,7 +215,7 @@ void ACCharacter::UpdateMovementPreviousValue()
 
 void ACCharacter::UpdateMovementSetting()
 {
-	if (characterStructs23 == nullptr) return;
+	if (characterStructs == nullptr) return;
 	if (GET_STATE(MainState) == EMainState::GROUND)
 	{
 		UpdateCurrentMovementSettings();
@@ -344,7 +321,7 @@ void ACCharacter::UpdateSetLocation()
 
 bool ACCharacter::AddUpdateGroundedRotation()
 {
-	if (characterStructs23 == nullptr) return false;
+	if (characterStructs == nullptr) return false;
 	if (GET_STATE(SubState) == ESubState::ATTACK)
 	{
 		check(skillManagerComponent7);
@@ -375,27 +352,28 @@ void ACCharacter::SetLastRotationMode(ERotationMode mode)
 	lastRotationMode = mode;
 }
 
+/*********************************************************************************************
+	* Rag Doll
+********************************************************************************************* */
+
 void ACCharacter::RagDollStart()
 {
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-	//SET_STATE(SubState, LayDown);
-
-	//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_PhysicsBody);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("spine_01"), true, true);
+	GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, true);
 	//몽타주멈춤 실행? 
 }
 
 void ACCharacter::UpdateRagDoll()
 {
 	/**	|| Hitted, LayDown의 상태에 따라 RagDoll weight을 다르게 설정합니다. || */
-	
-
 	if (GET_STATE(SubState) == ESubState::HITTED)
 	{
 		ragDollWeight = 0.5f;
-		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("spine_01"), ragDollWeight, false, true);
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("pelvis"), 0.f, false, true);
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("spine_03"), ragDollWeight, false, true);
+		return;
 	}
 	if (GET_STATE(SubState) == ESubState::LAY_DOWN)
 	{
@@ -420,6 +398,7 @@ void ACCharacter::UpdateRagDoll()
 
 		/**	|| 캡슐을 메시에 붙입니다. || */
 		RagDoll_SetCapusleLoc();
+		return;
 	}
 }
 
@@ -463,23 +442,21 @@ void ACCharacter::RagDoll_SetCapusleLoc()
 
 void ACCharacter::RagDollEnd()
 {
-	SET_STATE(SubState, None);
 	/**	|| 자연스럽게 일어나기 위한 포즈 저장 || */
 	GetMesh()->GetAnimInstance()->SavePoseSnapshot(FName("RagdollPose"));
-
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-	//GetMesh()->GetAnimInstance()->Montage_Play(GetGetUpAnimaMontage(bIsRagdolFaceUp));
 
 	if(GetWorldTimerManager().IsTimerActive(endRagdollHandle) == true)
 	{///실행되고있었다면 취소
 		GetWorldTimerManager().ClearTimer(endRagdollHandle);
 	}
 	GetWorldTimerManager().SetTimer(endRagdollHandle, this, &ACCharacter::RagDollEndTimer, GetWorld()->GetDeltaSeconds(), true);
+	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	//GetMesh()->GetAnimInstance()->Montage_Play(GetGetUpAnimaMontage(bIsRagdolFaceUp));
 }
 
 void ACCharacter::RagDollEndTimer()
 {
-	ragDollWeight -= 0.02f;
+	ragDollWeight -= 0.07f;
 	if (ragDollWeight <= 0.0f)
 	{///레그돌 해제 시키기
 		GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);
@@ -488,16 +465,16 @@ void ACCharacter::RagDollEndTimer()
 		GetWorldTimerManager().ClearTimer(endRagdollHandle);
 		return;
 	}
-	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("spine_01"), ragDollWeight, false, true);
+	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("spine_03"), ragDollWeight, false, true);
 }
 
 void ACCharacter::GetCharacterState(
 	EMainState& mainState_out, ESubState& subState_out, EMoveMode& movemode_out)
 {
-	if (characterStructs23 == nullptr) return;
-	mainState_out = characterStructs23->GetMainState();
-	subState_out = characterStructs23->GetSubState();
-	movemode_out = characterStructs23->GetMoveMode();
+	if (characterStructs == nullptr) return;
+	mainState_out = characterStructs->GetMainState();
+	subState_out = characterStructs->GetSubState();
+	movemode_out = characterStructs->GetMoveMode();
 	return;
 }
 
@@ -507,3 +484,21 @@ void ACCharacter::GetCharacterState(
 {
 	SetGround();
 }), 0.1f, false);*/
+
+
+//if (GET_STATE(MainState) == EMainState::GROUND)
+//{
+//	float charHalfZ = GetActorLocation().Z;
+//	float groundZ = GetActorLocation().Z - halfCapusleHeight;
+//	float determinLayDownZ = FMath::Lerp(charHalfZ, groundZ, ratioDeterminLayDownZ);
+
+//	/*CLog::Log(GetMesh()->GetSocketLocation(FName("pelvis")).Z, "pevis Loc : ");
+//	CLog::Log(determinLayDownZ, "determinLayDownZ : ");
+//	CLog::Log(groundZ, "groundZ : ");
+//	CLog::Log(GetActorLocation().Z, "GetActorLocation().Z : ");
+//	CLog::Log("////////////////////////////////");*/
+//	if (GetMesh()->GetSocketLocation(FName("pelvis")).Z < determinLayDownZ)
+//	{
+//		SET_STATE(SubState, LayDown);
+//	}
+//}

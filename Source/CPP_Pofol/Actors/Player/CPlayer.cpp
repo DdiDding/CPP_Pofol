@@ -59,7 +59,7 @@ ACPlayer::ACPlayer()
 void ACPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-	if (characterStructs23 == nullptr) return;
+	if (characterStructs == nullptr) return;
 	SET_STATE(RotationMode, Controller);
 }
 
@@ -89,7 +89,7 @@ void ACPlayer::Move_FB(float axisValue)
 	virtualAcceleration.X = axisValue;
 	FVector Direction;
 
-	if (characterStructs23 == nullptr) return;
+	if (characterStructs == nullptr) return;
 	if (GET_STATE(SubState) == ESubState::NONE)
 	{
 		Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X);
@@ -109,7 +109,7 @@ void ACPlayer::Move_RL(float axisValue)
 	virtualAcceleration.Y = axisValue;
 	FVector Direction;
 
-	if (characterStructs23 == nullptr) return;
+	if (characterStructs == nullptr) return;
 	if (GET_STATE(SubState) == ESubState::NONE)
 	{
 		Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
@@ -125,7 +125,7 @@ void ACPlayer::Move_RL(float axisValue)
 
 void ACPlayer::Press_Spacebar( )
 {
-	if (characterStructs23 != nullptr) { SET_STATE(MainState,Air); }
+	if (characterStructs != nullptr) { SET_STATE(MainState,Air); }
 	if (wallRunComponent != nullptr) {	if (wallRunComponent->StartSubState() == true)	return;	}
 
 	Jump();
@@ -154,7 +154,7 @@ void ACPlayer::Press_Ctrl( )
 
 void ACPlayer::Press_Tab( )
 {
-	check(characterStructs23);
+	check(characterStructs);
 
 	SetLastRotationMode(GET_STATE(RotationMode));
 	if (GET_STATE(RotationMode) == ERotationMode::VELOCITY)
@@ -226,7 +226,7 @@ void ACPlayer::Press_4()
 //Location & Rotation
 void ACPlayer::SetLocation()
 {
-	if(characterStructs23 == nullptr) return;
+	if(characterStructs == nullptr) return;
 	if (GET_STATE(SubState) == ESubState::WALLRUN)
 	{
 		wallRunComponent->UpdateLocation();
@@ -257,8 +257,8 @@ void ACPlayer::Debug() {
 	
 	//Debug States
 	{
-		//(int)&characterStructs23
-		if (IsValid(characterStructs23) == true)
+		//(int)&characterStructs
+		if (IsValid(characterStructs) == true)
 		{
 			CLog::ScreenLog(L"@@@ Struct Valid @@@", 0.0f, FColor::Magenta);
 		}
@@ -278,10 +278,10 @@ void ACPlayer::Debug() {
 			*UEnum::GetDisplayValueAsText(GET_STATE(RotationMode)).ToString()));
 
 
-		CLog::ScreenLog((int)characterStructs23->GetMainState(),0.0f, FColor::Orange,L"MainState to int : ");
-		CLog::ScreenLog((int)characterStructs23->GetSubState(),0.0f, FColor::Orange,L"SubState to int : ");
-		CLog::ScreenLog((int)characterStructs23->GetMoveMode(), 0.0f, FColor::Orange, L"MoveMode to int : ");
-		CLog::ScreenLog((int)characterStructs23->GetRotationMode(), 0.0f, FColor::Orange, L"RotationMode to int : ");
+		CLog::ScreenLog((int)characterStructs->GetMainState(),0.0f, FColor::Orange,L"MainState to int : ");
+		CLog::ScreenLog((int)characterStructs->GetSubState(),0.0f, FColor::Orange,L"SubState to int : ");
+		CLog::ScreenLog((int)characterStructs->GetMoveMode(), 0.0f, FColor::Orange, L"MoveMode to int : ");
+		CLog::ScreenLog((int)characterStructs->GetRotationMode(), 0.0f, FColor::Orange, L"RotationMode to int : ");
 		CLog::ScreenLog(multiplySpeed, 0.0f, FColor::Red, L"Current speed : ");
 		
 	}

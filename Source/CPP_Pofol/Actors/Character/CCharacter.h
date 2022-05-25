@@ -11,8 +11,8 @@
 #include "CCharacter.generated.h"
 
 //CCharacterStruct를 편하게 이용하기위한 define, Character파생 클래스에서만 사용한다.
-#define GET_STATE(x) characterStructs23->Get##x()
-#define SET_STATE(x,y) characterStructs23->Set##x##_##y()
+#define GET_STATE(x) characterStructs->Get##x()
+#define SET_STATE(x,y) characterStructs->Set##x##_##y()
 
 class UCDA_WeaponData;
 enum class ERotationMode : uint8;
@@ -67,7 +67,7 @@ protected://Components
 	class UCWeaponManagerComponent * weaponManagerComponent8;
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Components", meta = (AllowPrivateAccess = true))
-	class UCReactionComponent * reactionComponent1;
+	class UCReactionComponent * reactionComponent;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	class UCParticleManagerComponent * particleManagerComponent;
@@ -162,18 +162,18 @@ public://Get & Set
 	void GetCharacterState(EMainState& mainState_out, ESubState& subState_out, EMoveMode& movemode_out);
 
 	UFUNCTION(BlueprintPure, Category = "Get CharacterInfo")
-	UCCharacterStruct * GetCharacterStruct() { return characterStructs23; }
+	UCCharacterStruct * GetCharacterStruct() { return characterStructs; }
 
 	UFUNCTION(BlueprintPure, Category = "Get CharacterInfo")
-	EMainState GetMainState() { return characterStructs23->GetMainState(); }
+	EMainState GetMainState() { return characterStructs->GetMainState(); }
 
 	UFUNCTION(BlueprintPure, Category = "Get CharacterInfo")
-	ESubState GetSubState() { return characterStructs23->GetSubState(); }
+	ESubState GetSubState() { return characterStructs->GetSubState(); }
 
 	void SetLastRotationMode(ERotationMode mode);
 
 	UFUNCTION(BlueprintCallable, Category = "Get Component")
-	UCReactionComponent * GetReactionComponent() { return reactionComponent1; }
+	UCReactionComponent * GetReactionComponent() { return reactionComponent; }
 
 ////////////////////////////////////////////////////////////////////////////////
 protected://member function
@@ -214,7 +214,7 @@ protected://member function
 protected://member property
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Essential Value")
-	UCCharacterStruct * characterStructs23;
+	UCCharacterStruct * characterStructs;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Essential Value")
 	float aimYawRate;

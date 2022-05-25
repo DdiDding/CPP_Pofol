@@ -1,4 +1,5 @@
 #include "Structs/Character/CCharacterStruct.h"
+#include "Util/CLog.h"
 
 UCCharacterStruct::UCCharacterStruct()
 {

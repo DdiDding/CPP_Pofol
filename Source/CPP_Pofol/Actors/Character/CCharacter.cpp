@@ -382,7 +382,7 @@ void ACCharacter::UpdateRagDoll()
 	/**	|| Hitted, LayDown의 상태에 따라 RagDoll weight을 다르게 설정합니다. || */
 	if (GET_STATE(SubState) == ESubState::LAY_DOWN)
 	{
-		CLog::Log("Update LayDown");
+		//CLog::Log("Update LayDown");
 		
 		ragDollWeight = 1.f;
 		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, true);
@@ -395,7 +395,7 @@ void ACCharacter::UpdateRagDoll()
 	GetMesh()->SetAllBodiesSimulatePhysics(false);
 	if (GET_STATE(MainState) == EMainState::AIR)
 	{
-		CLog::Log("Update Hitted Air");
+		//CLog::Log("Update Hitted Air");
 		ragDollWeight = 0.5f;
 		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("thigh_l"), true, true);
 		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("thigh_r"), true, true);
@@ -404,7 +404,7 @@ void ACCharacter::UpdateRagDoll()
 	}
 	else if (GET_STATE(MainState) == EMainState::GROUND)
 	{
-		CLog::Log("Update Hitted Ground");
+		//CLog::Log("Update Hitted Ground");
 		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_l"), 0.f, false, true);
 		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_r"), 0.f, false, true);
 	}

@@ -58,7 +58,7 @@ void ACCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (GetCapsuleComponent() == nullptr)
+	if (GetCapsuleComponent() != nullptr)
 	{
 		halfCapusleHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 	}
@@ -72,7 +72,7 @@ void ACCharacter::Tick(float DeltaTime)
 	UpdateSubState();
 	UpdateEssentialValue();
 
-	if (GET_STATE(SubState) == ESubState::HITTED)
+	if (GET_STATE(SubState) == ESubState::HITTED || GET_STATE(SubState) == ESubState::LAY_DOWN)
 	{
 		UpdateRagDoll();
 	}
@@ -118,7 +118,9 @@ void ACCharacter::Falling()
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+/*********************************************************************************************
+	* Update
+********************************************************************************************* */
 
 void ACCharacter::UpdateSubState()
 {
@@ -127,21 +129,32 @@ void ACCharacter::UpdateSubState()
 	if (animnInst == nullptr) return;
 
 	float hittedCurveValue = animnInst->GetCurveValue(FName("Hitted_Curve"));
-	CLog::Log(hittedCurveValue, "hittedCurveValue : ");
-	CLog::Log(*UEnum::GetDisplayValueAsText(GET_STATE(SubState)).ToString());
-
+	CLog::ScreenLog(hittedCurveValue, 0.f, FColor::Red, "curve value : ");
 	if (GET_STATE(SubState) == ESubState::NONE && 0.0f < hittedCurveValue)
 	{
 		SET_STATE(SubState, Hitted);
 		RagDollStart();
 		return;
 	}
-	if (GET_STATE(SubState) == ESubState::HITTED )
+	if (GET_STATE(SubState) == ESubState::HITTED)
 	{
-		if(hittedCurveValue <= 0.5f)
+		if(hittedCurveValue <= 0.0f)
 		{
 			SET_STATE(SubState,None);
 			RagDollEnd();
+			return;
+		}
+		if ( 2.f <= hittedCurveValue )
+		{
+			SET_STATE(SubState, LayDown);
+			return;
+		}
+	}
+	if (GET_STATE(SubState) == ESubState::LAY_DOWN)
+	{
+		if (hittedCurveValue < 2.f)
+		{
+			SET_STATE(SubState, Hitted);
 			return;
 		}
 	}
@@ -361,45 +374,43 @@ void ACCharacter::RagDollStart()
 	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_PhysicsBody);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, true);
-	//몽타주멈춤 실행? 
 }
 
 void ACCharacter::UpdateRagDoll()
 {
+
 	/**	|| Hitted, LayDown의 상태에 따라 RagDoll weight을 다르게 설정합니다. || */
-	if (GET_STATE(SubState) == ESubState::HITTED)
-	{
-		ragDollWeight = 0.5f;
-		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("pelvis"), 0.f, false, true);
-		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("spine_03"), ragDollWeight, false, true);
-		return;
-	}
 	if (GET_STATE(SubState) == ESubState::LAY_DOWN)
 	{
-		/**	|| 너무 부자연스럽게 꺾이지 않도록 속도에따라 단단하게 관절을 구성합니다 || */
-		LastRagDollVelocity = GetMesh()->GetPhysicsLinearVelocity();
-
-		if (LastRagDollVelocity.Size() < 1.5f)
-		{
-			bCanGetUp = true;
-		}
-		else
-		{
-			bCanGetUp = false;
-		}
-
-		float inSpring = UKismetMathLibrary::MapRangeClamped(
-			LastRagDollVelocity.Size(),
-			0.0f, 1000.0f,
-			0.0f, 25000.0f
-		);
-		GetMesh()->SetAllMotorsAngularDriveParams(inSpring, 0.0f, 0.0f);
-
-		/**	|| 캡슐을 메시에 붙입니다. || */
+		CLog::Log("Update LayDown");
+		
+		ragDollWeight = 1.f;
+		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, true);
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("pelvis"), ragDollWeight, false, true);
 		RagDoll_SetCapusleLoc();
 		return;
 	}
+
+	ragDollWeight = 0.35f;
+	GetMesh()->SetAllBodiesSimulatePhysics(false);
+	if (GET_STATE(MainState) == EMainState::AIR)
+	{
+		CLog::Log("Update Hitted Air");
+		ragDollWeight = 0.5f;
+		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("thigh_l"), true, true);
+		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("thigh_r"), true, true);
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_l"), ragDollWeight, false,true);
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_r"), ragDollWeight, false,true);
+	}
+	else if (GET_STATE(MainState) == EMainState::GROUND)
+	{
+		CLog::Log("Update Hitted Ground");
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_l"), 0.f, false, true);
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_r"), 0.f, false, true);
+	}
+	GetMesh()->SetAllBodiesBelowSimulatePhysics(hittedActionBone, true, true);
+	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(hittedActionBone, ragDollWeight, false,true);
+	return;
 }
 
 void ACCharacter::RagDoll_SetCapusleLoc()
@@ -442,21 +453,28 @@ void ACCharacter::RagDoll_SetCapusleLoc()
 
 void ACCharacter::RagDollEnd()
 {
+	CLog::Log("End Ragdoll");
+
 	/**	|| 자연스럽게 일어나기 위한 포즈 저장 || */
 	GetMesh()->GetAnimInstance()->SavePoseSnapshot(FName("RagdollPose"));
+	RagDollStartTimer();
 
-	if(GetWorldTimerManager().IsTimerActive(endRagdollHandle) == true)
-	{///실행되고있었다면 취소
-		GetWorldTimerManager().ClearTimer(endRagdollHandle);
-	}
-	GetWorldTimerManager().SetTimer(endRagdollHandle, this, &ACCharacter::RagDollEndTimer, GetWorld()->GetDeltaSeconds(), true);
 	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	//GetMesh()->GetAnimInstance()->Montage_Play(GetGetUpAnimaMontage(bIsRagdolFaceUp));
 }
 
+void ACCharacter::RagDollStartTimer()
+{
+	if (GetWorldTimerManager().IsTimerActive(endRagdollHandle) == true)
+	{///실행되고있었다면 취소
+		GetWorldTimerManager().ClearTimer(endRagdollHandle);
+	}
+	GetWorldTimerManager().SetTimer(endRagdollHandle, this, &ACCharacter::RagDollEndTimer, GetWorld()->GetDeltaSeconds(), true);
+}
+
 void ACCharacter::RagDollEndTimer()
 {
-	ragDollWeight -= 0.07f;
+	ragDollWeight -= 0.03f;
 	if (ragDollWeight <= 0.0f)
 	{///레그돌 해제 시키기
 		GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);
@@ -465,7 +483,7 @@ void ACCharacter::RagDollEndTimer()
 		GetWorldTimerManager().ClearTimer(endRagdollHandle);
 		return;
 	}
-	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("spine_03"), ragDollWeight, false, true);
+	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(hittedActionBone, ragDollWeight, false, true);
 }
 
 void ACCharacter::GetCharacterState(
@@ -479,26 +497,45 @@ void ACCharacter::GetCharacterState(
 }
 
 
-//람다 + 타이머사용 레거시임
-/*GetWorld()->GetTimerManager().SetTimer(timerHandle, FTimerDelegate::CreateLambda([&]()
-{
-	SetGround();
-}), 0.1f, false);*/
-
 
 //if (GET_STATE(MainState) == EMainState::GROUND)
 //{
 //	float charHalfZ = GetActorLocation().Z;
 //	float groundZ = GetActorLocation().Z - halfCapusleHeight;
 //	float determinLayDownZ = FMath::Lerp(charHalfZ, groundZ, ratioDeterminLayDownZ);
-
-//	/*CLog::Log(GetMesh()->GetSocketLocation(FName("pelvis")).Z, "pevis Loc : ");
-//	CLog::Log(determinLayDownZ, "determinLayDownZ : ");
-//	CLog::Log(groundZ, "groundZ : ");
-//	CLog::Log(GetActorLocation().Z, "GetActorLocation().Z : ");
-//	CLog::Log("////////////////////////////////");*/
-//	if (GetMesh()->GetSocketLocation(FName("pelvis")).Z < determinLayDownZ)
+//
+//	//if (GetMesh()->GetSocketLocation(FName("pelvis")).Z < determinLayDownZ)
+//	if (120.f < GetMesh()->GetSocketLocation(FName("pelvis")).Z)
 //	{
 //		SET_STATE(SubState, LayDown);
+//		return;
 //	}
+//}
+
+
+//if (GET_STATE(SubState) == ESubState::LAY_DOWN)
+//{
+//	GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, true);
+//	///**	|| 너무 부자연스럽게 꺾이지 않도록 속도에따라 단단하게 관절을 구성합니다 || */
+//	LastRagDollVelocity = GetMesh()->GetPhysicsLinearVelocity();
+//
+//	if (LastRagDollVelocity.Size() < 1.5f)
+//	{
+//		bCanGetUp = true;
+//	}
+//	else
+//	{
+//		bCanGetUp = false;
+//	}
+//
+//	float inSpring = UKismetMathLibrary::MapRangeClamped(
+//		LastRagDollVelocity.Size(),
+//		0.0f, 1000.0f,
+//		0.0f, 25000.0f
+//	);
+//	GetMesh()->SetAllMotorsAngularDriveParams(inSpring, 0.0f, 0.0f);
+//
+//	///**	|| 캡슐을 메시에 붙입니다. || */
+//	RagDoll_SetCapusleLoc();
+//	return;
 //}

@@ -205,6 +205,9 @@ protected://member function
 	void RagDollEnd();
 
 	UFUNCTION(Category = "Rag Doll")
+	void RagDollStartTimer();
+
+	UFUNCTION(Category = "Rag Doll")
 	void RagDollEndTimer();
 
 	UFUNCTION(BlueprintCallable, Category = "Rag Doll")
@@ -213,7 +216,7 @@ protected://member function
 ////////////////////////////////////////////////////////////////////////////////
 protected://member property
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Essential Value")
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Essential Value")
 	UCCharacterStruct * characterStructs;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Essential Value")
@@ -268,6 +271,9 @@ protected://member property
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Ragdoll Value")
 	bool bRagdollOnGround{ false };
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Ragdoll Value")
+	FName hittedActionBone{ "spine_02" };
 
 	//Ragdoll을 자연스럽게 해제하기 위한 핸들
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Ragdoll Value")

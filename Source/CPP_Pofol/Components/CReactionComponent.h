@@ -11,6 +11,11 @@ enum class EReactionType : uint8;
 //DECLARE_DELEGATE(FHitted);
 DECLARE_DELEGATE_OneParam(FHitted, EReactionType);
 
+UENUM(BlueprintType)
+enum class EHittedState : uint8
+{
+	NORMAL = 0, AIR , LAY_DOWN
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class CPP_POFOL_API UCReactionComponent : public UActorComponent
@@ -90,14 +95,15 @@ public://Get & Set Func
 ////////////////////////////////////////////////////////////////////////////////
 private://member property
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Onwer Info", meta = (AllowPrivateAccess = true))
 	ACCharacter * owner;
 
-	UPROPERTY()
-	UCGameInstance * gameInstance;
+	//현재 어떤 판정의 공격을 받을수있고 어떻게 판정이 들어가는지에 대한 상태에의 구분을 위한 변수 입니다.
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Onwer Info", meta = (AllowPrivateAccess = true))
+	EHittedState hittedState{ EHittedState::NORMAL };
 	
 	//데미지를 준 적의 위치
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Damaget Info", meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Damage Info", meta = (AllowPrivateAccess = true))
 	FVector damagedActorLoc;
 
 	//ShakeActor를 업데이트 할것인지? - true면 Tick에서 업데이트를 한다.
@@ -136,6 +142,9 @@ private://member property
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
 	float gravityTimerInRate = 0.3f;
 
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "World Data", meta = (AllowPrivateAccess = true))
+		UCGameInstance * gameInstance;
 
 ////////////////////////////////////////////////////////////////////////////////
 public://Debug Property

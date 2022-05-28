@@ -80,9 +80,10 @@ void UCReactionComponent::TakePointDamage(AActor* DamagedActor, float Damage, cl
 	/**	Reaction유형에 따른 처리를 하고 공격 성공여부를 반환 */
 	//CDO를 절대 변경할일이 없이 때문에 const_cast사용
 	const UCDamageType * tempDamageType = const_cast<UCDamageType*>(Cast<UCDamageType>(DamageType));
-	if (ReactionHandle(tempDamageType->reactionType, tempDamageType->knockBackPower) == false) return;
+	EReactionType finalReaction = ReactionHandle(tempDamageType->reactionType, tempDamageType->knockBackPower);
+	if (finalReaction == EReactionType::NONE) return;
+	if (OnHitted.IsBound() == true) OnHitted.Execute(finalReaction);
 
-	if (OnHitted.IsBound() == true) OnHitted.Execute(tempDamageType->reactionType);
 
 	KnockBackActor_Forward(tempDamageType->knockBackPower.X);
 
@@ -173,35 +174,76 @@ void UCReactionComponent::DoingRimRight(float value)
 	* Knock Back
 ********************************************************************************************* */
 
-bool UCReactionComponent::ReactionHandle(const EReactionType & reactionType, const FVector & knockBackAmount)
+EReactionType UCReactionComponent::ReactionHandle(const EReactionType & reactionType, const FVector & knockBackAmount)
 {
-	bool canHittedBottom = CheckCanHittedBottom();
-	return canHittedBottom;
-
-	if(owner->GetMainState() == EMainState::AIR)
+	/**	||공중인지 땅에있는지 확인|| */
+	if (owner->GetMainState() == EMainState::AIR)
 	{
-		if (reactionType == EReactionType::SMASH_DOWN)
-		{
-			KnockBackActor_Upper(-3000.f);
-		}
-		else
-		{
-			KnockBackActor_Upper(250.f);
-			SetTimerForGravityInAirState();
-		}
+		SetHittedState_Air();
 	}
-	if (owner->GetMainState() == EMainState::GROUND)
+	else if (owner->GetSubState() == ESubState::LAY_DOWN)
 	{
-		if (reactionType == EReactionType::SMASH_UPPER)
-		{
-			KnockBackActor_Upper(knockBackAmount.Z);
-			SetTimerForGravityInAirState();
-		}
+		SetHittedState_Ground();
+	}
+	CLog::ScreenEnumLog("ReactionType : ", GetHittedState(), FColor::Green, 2.f);
+
+
+	/**	||상태와 상관없이 항상 똑같은 처리를 하는 리액션 타입의 처리|| */
+	if (reactionType == EReactionType::SMASH_UPPER)
+	{
+		SetHittedState_Air();
+		KnockBackActor_Upper(knockBackAmount.Z);
+		SetTimerForGravityInAirState();
+		return EReactionType::SMASH_UPPER;
+	}
+	if (reactionType == EReactionType::SMASH_DOWN)
+	{
+		SetHittedState_Ground();
+		KnockBackActor_Upper(-3000.f);
+		return EReactionType::SMASH_DOWN;
+	}
+	/*if (reactionType == EReactionType::STRONG)
+			{
+				owner->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), hittingActor->GetActorLocation()));
+			}*/
+
+	bool canHittedBottom = CheckCanHittedBottom();
+	if (GetHittedState() == EHittedState::AIR)
+	{///공중에 떠있다면
+		KnockBackActor_Upper(250.f);
+		SetTimerForGravityInAirState();
+		return EReactionType::SMASH_UPPER;
+	}
+	if (owner->GetSubState() == ESubState::LAY_DOWN)
+	{///누워있다면
 		if (reactionType == EReactionType::STRONG)
 		{
-			owner->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), hittingActor->GetActorLocation()));
+			return EReactionType::NORMAL;
 		}
+		return EReactionType::NONE;
 	}
+	if (GetHittedState() == EHittedState::GROUND)
+	{///서있다면
+		return EReactionType::NORMAL;
+	}
+
+	return EReactionType::NONE;
+	
+
+
+	//if(owner->GetMainState() == EMainState::AIR)
+	//{
+	//	KnockBackActor_Upper(250.f);
+	//	SetTimerForGravityInAirState();
+	//}
+	//if (owner->GetMainState() == EMainState::GROUND)
+	//{
+	//	
+	//	if (reactionType == EReactionType::STRONG)
+	//	{
+	//		owner->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), hittingActor->GetActorLocation()));
+	//	}
+	//}
 }
 
 void UCReactionComponent::KnockBackActor_Forward(float forwardAmount)
@@ -235,7 +277,7 @@ void UCReactionComponent::SetOriginGravity()
 	if (owner->GetVelocity().Z < 10.0f)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(gravityHandle);
-		owner->GetCharacterMovement()->GravityScale = 3.0f;
+		owner->GetCharacterMovement()->GravityScale = 2.0f;
 	}
 }
 

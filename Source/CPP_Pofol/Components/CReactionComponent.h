@@ -8,13 +8,14 @@
 class ACCharacter;
 class UCGameInstance;
 enum class EReactionType : uint8;
-//DECLARE_DELEGATE(FHitted);
 DECLARE_DELEGATE_OneParam(FHitted, EReactionType);
 
 UENUM(BlueprintType)
 enum class EHittedState : uint8
 {
-	NORMAL = 0, AIR , LAY_DOWN
+	//AIR은 공중에 떠있는 상태 입니다. 여기서 따로 정의한 이유는 캡슐이 바닥에 닿아도 떠있는 상태가 있기 때문에
+	//좀더 쉽게 저글 콤보를 이어갈수 있도록 상태를 Enum으로 정의 했습니다. Normal은 공중에 떠있지 않은 상태입니다.(서있거나, 누워있거나)
+	GROUND = 0, AIR
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -86,7 +87,7 @@ private://member function
 	//TODO:여기서 방어 성공했는지 확인하면 괜찮을듯
 	/* Reaction유형에 따른 처리를 하고 공격 성공여부를 반환 */
 	UFUNCTION(Category = "Hitted Logic")
-	bool ReactionHandle(const EReactionType & reactionType, const FVector & knockBackAmount);
+	EReactionType ReactionHandle(const EReactionType & reactionType, const FVector & knockBackAmount);
 
 	/* 하단공격이 맞을수 있는지, True면 가능 false면 불가능*/
 	UFUNCTION(Category = "Hitted Logic")
@@ -95,6 +96,9 @@ private://member function
 ////////////////////////////////////////////////////////////////////////////////
 public://Get & Set Func
 
+	EHittedState GetHittedState() {	return hittedState;	}
+	void SetHittedState_Ground() { hittedState = EHittedState::GROUND; };
+	void SetHittedState_Air() { hittedState = EHittedState::AIR; };
 
 ////////////////////////////////////////////////////////////////////////////////
 private://member property
@@ -104,7 +108,7 @@ private://member property
 	
 	//현재 어떤 판정의 공격을 받을수있고 어떻게 판정이 들어가는지에 대한 상태에의 구분을 위한 변수 입니다.
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Onwer Info", meta = (AllowPrivateAccess = true))
-	EHittedState hittedState{ EHittedState::NORMAL };
+	EHittedState hittedState{ EHittedState::GROUND };
 	
 	//데미지를 준 액터
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Damage Info", meta = (AllowPrivateAccess = true))

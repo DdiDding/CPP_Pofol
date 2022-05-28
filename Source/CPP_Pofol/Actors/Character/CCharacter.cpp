@@ -383,7 +383,6 @@ void ACCharacter::UpdateRagDoll()
 	if (GET_STATE(SubState) == ESubState::LAY_DOWN)
 	{
 		//CLog::Log("Update LayDown");
-		
 		ragDollWeight = 1.f;
 		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, true);
 		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("pelvis"), ragDollWeight, false, true);
@@ -396,7 +395,7 @@ void ACCharacter::UpdateRagDoll()
 	if (GET_STATE(MainState) == EMainState::AIR)
 	{
 		//CLog::Log("Update Hitted Air");
-		ragDollWeight = 0.5f;
+		ragDollWeight = 0.35f;
 		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("thigh_l"), true, true);
 		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("thigh_r"), true, true);
 		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_l"), ragDollWeight, false,true);

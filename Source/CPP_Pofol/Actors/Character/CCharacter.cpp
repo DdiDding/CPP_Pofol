@@ -140,6 +140,7 @@ void ACCharacter::UpdateSubState()
 	{
 		if(hittedCurveValue <= 0.0f)
 		{
+			CLog::ScreenLog(hittedCurveValue, 5.f, FColor::Red, "curve value is ZERO!!! : ");
 			SET_STATE(SubState,None);
 			RagDollEnd();
 			return;
@@ -378,6 +379,10 @@ void ACCharacter::RagDollStart()
 
 void ACCharacter::UpdateRagDoll()
 {
+	/**	|| 자연스럽게 일어나기 위한 포즈 저장 || */
+	GetMesh()->GetAnimInstance()->SavePoseSnapshot(FName("RagdollPose"));
+
+
 	/**	|| Hitted, LayDown의 상태에 따라 RagDoll weight을 다르게 설정합니다. || */
 	if (GET_STATE(SubState) == ESubState::LAY_DOWN)
 	{
@@ -394,12 +399,11 @@ void ACCharacter::UpdateRagDoll()
 		}
 	}
 
-	ragDollWeight = 0.35f;
+	ragDollWeight = 0.75f;
 	GetMesh()->SetAllBodiesSimulatePhysics(false);
 	if (GET_STATE(MainState) == EMainState::AIR)
 	{
 		//CLog::Log("Update Hitted Air");
-		ragDollWeight = 0.35f;
 		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("thigh_l"), true, true);
 		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("thigh_r"), true, true);
 		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_l"), ragDollWeight, false,true);
@@ -458,8 +462,7 @@ void ACCharacter::RagDollEnd()
 {
 	CLog::Log("End Ragdoll");
 
-	/**	|| 자연스럽게 일어나기 위한 포즈 저장 || */
-	GetMesh()->GetAnimInstance()->SavePoseSnapshot(FName("RagdollPose"));
+	
 	RagDollStartTimer();
 
 	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
@@ -475,6 +478,7 @@ void ACCharacter::RagDollStartTimer()
 	GetWorldTimerManager().SetTimer(endRagdollHandle, this, &ACCharacter::RagDollEndTimer, GetWorld()->GetDeltaSeconds(), true);
 }
 
+//TODO:나중에 Lagdoll에서 일어날때 맞는경우는 일어나는 애니메이션실행해야하니까 다른 처리해야함
 void ACCharacter::RagDollEndTimer()
 {
 	ragDollWeight -= 0.03f;

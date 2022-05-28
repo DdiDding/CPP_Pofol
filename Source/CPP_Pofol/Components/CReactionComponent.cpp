@@ -204,7 +204,8 @@ EReactionType UCReactionComponent::ReactionHandle(const EReactionType & reaction
 	}
 	if (reactionType == EReactionType::STRONG)
 	{
-		owner->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), hittingActor->GetActorLocation()));
+		float tempYaw = UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), hittingActor->GetActorLocation()).Yaw;
+		owner->SetActorRotation(FRotator(0.f, tempYaw, 0.f));
 		return EReactionType::STRONG;
 	}
 
@@ -245,7 +246,7 @@ EReactionType UCReactionComponent::ReactionHandle(const EReactionType & reaction
 
 void UCReactionComponent::KnockBackActor_Forward(float forwardAmount)
 {
-	FVector tempNorm = (owner->GetActorLocation() - hittingActor->GetActorLocation()).GetSafeNormal();
+	FVector tempNorm = (owner->GetActorLocation() - hittingActor->GetActorLocation()).GetSafeNormal2D();
 	owner->AddActorWorldOffset(tempNorm * forwardAmount);
 }
 
@@ -271,10 +272,10 @@ void UCReactionComponent::SetTimerForGravityInAirState()
 
 void UCReactionComponent::SetOriginGravity()
 {
-	if (owner->GetVelocity().Z < 10.0f)
+	if (owner->GetVelocity().Z < -400.f)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(gravityHandle);
-		owner->GetCharacterMovement()->GravityScale = 1.8f;
+		owner->GetCharacterMovement()->GravityScale = 1.5f;
 	}
 }
 

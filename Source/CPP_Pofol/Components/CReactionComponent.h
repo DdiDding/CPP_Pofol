@@ -146,10 +146,6 @@ private://member property
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
 	float upperGravity{ 0.9f };
 
-	//중력이 낮게 조정되고 다시 원래 중력값으로 되돌아가기 까지의 시간
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
-	float gravityTimerInRate = 0.3f;
-
 	//하단판정을 가려낼 본이름, 인간형, 로봇형마다 센터 본 이름이 다를수도있어서 일단 변수로지정
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Launch Value", meta = (AllowPrivateAccess = true))
 	FName centerBone {"pelvis"};

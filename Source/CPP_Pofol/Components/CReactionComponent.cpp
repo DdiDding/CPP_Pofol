@@ -202,25 +202,22 @@ EReactionType UCReactionComponent::ReactionHandle(const EReactionType & reaction
 		KnockBackActor_Upper(-3000.f);
 		return EReactionType::SMASH_DOWN;
 	}
-	/*if (reactionType == EReactionType::STRONG)
-			{
-				owner->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), hittingActor->GetActorLocation()));
-			}*/
+	if (reactionType == EReactionType::STRONG)
+	{
+		owner->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), hittingActor->GetActorLocation()));
+		return EReactionType::STRONG;
+	}
 
 	bool canHittedBottom = CheckCanHittedBottom();
 	if (GetHittedState() == EHittedState::AIR)
 	{///공중에 떠있다면
-		KnockBackActor_Upper(250.f);
+		KnockBackActor_Upper(300.f);
 		SetTimerForGravityInAirState();
 		return EReactionType::SMASH_UPPER;
 	}
 	if (owner->GetSubState() == ESubState::LAY_DOWN)
 	{///누워있다면
-		if (reactionType == EReactionType::STRONG)
-		{
-			return EReactionType::NORMAL;
-		}
-		return EReactionType::NONE;
+		return EReactionType::LAY_DOWN_HIT;
 	}
 	if (GetHittedState() == EHittedState::GROUND)
 	{///서있다면
@@ -277,7 +274,7 @@ void UCReactionComponent::SetOriginGravity()
 	if (owner->GetVelocity().Z < 10.0f)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(gravityHandle);
-		owner->GetCharacterMovement()->GravityScale = 2.0f;
+		owner->GetCharacterMovement()->GravityScale = 1.8f;
 	}
 }
 

@@ -144,15 +144,15 @@ void ACCharacter::UpdateSubState()
 			RagDollEnd();
 			return;
 		}
-		if ( 2.f <= hittedCurveValue )
-		{
+		if ( 1.5f <= hittedCurveValue )
+		{///커브값이 2가 되어야 LayDown이 된다.
 			SET_STATE(SubState, LayDown);
 			return;
 		}
 	}
 	if (GET_STATE(SubState) == ESubState::LAY_DOWN)
 	{
-		if (hittedCurveValue < 2.f)
+		if (hittedCurveValue < 1.5f)
 		{
 			SET_STATE(SubState, Hitted);
 			return;
@@ -378,16 +378,20 @@ void ACCharacter::RagDollStart()
 
 void ACCharacter::UpdateRagDoll()
 {
-
 	/**	|| Hitted, LayDown의 상태에 따라 RagDoll weight을 다르게 설정합니다. || */
 	if (GET_STATE(SubState) == ESubState::LAY_DOWN)
 	{
-		//CLog::Log("Update LayDown");
-		ragDollWeight = 1.f;
-		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, true);
-		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("pelvis"), ragDollWeight, false, true);
-		RagDoll_SetCapusleLoc();
-		return;
+		if (float hittedCurveValue = animnInst->GetCurveValue(FName("Hitted_Curve")) == 2.0f)
+		{
+			//CLog::Log("Update LayDown");
+			if(ragDollWeight < 1.f) ragDollWeight+= 0.07f;
+			else ragDollWeight = 1.f;
+
+			GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, true);
+			GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("pelvis"), ragDollWeight, false, true);
+			RagDoll_SetCapusleLoc();
+			return;
+		}
 	}
 
 	ragDollWeight = 0.35f;

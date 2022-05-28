@@ -15,7 +15,7 @@ enum class EAttackType : uint8
 UENUM(BlueprintType)
 enum class EReactionType : uint8
 {
-	NONE = 0, NORMAL, SMASH_UPPER, SMASH_DOWN, STRONG, JUGGLE, MAX
+	NONE = 0, NORMAL, SMASH_UPPER, SMASH_DOWN, STRONG, LAY_DOWN_HIT, MAX
 };
 
 UCLASS()

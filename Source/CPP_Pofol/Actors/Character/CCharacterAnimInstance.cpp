@@ -44,7 +44,7 @@ void UCCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	/** || Update Main State || */
 	{
-		if (ownerMainState == EMainState::GROUND)
+		if (ownerMainState == EMainState::GROUND || ownerSubState == ESubState::WALLRUN)
 		{
 			if (0.0f < ownerSpeed)
 			{
@@ -213,7 +213,7 @@ void UCCharacterAnimInstance::CalculateStandingPlayRate()
 		ownerSpeed / ownerAnimatedRunSpeed,
 		GetAnimcurveClamped(FName("Weight_Gait"), -1.0f, 0.0f, 1.0f)
 	);
-	
+	//
 	standingPlayRate /= strideBlend;
 	standingPlayRate *= ownerMulSpeed;
 

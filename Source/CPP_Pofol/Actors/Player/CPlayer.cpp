@@ -31,7 +31,6 @@ ACPlayer::ACPlayer()
 	//Setting AnimInstance
 	{
 		GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-
 		//AnimInstance ¿˙¿Â
 		/*static ConstructorHelpers::FClassFinder<UAnimInstance>PlayerABP(TEXT("UAnimInstance'/Game/Actors/Player/ABP_PlayerABP.ABP_PlayerABP_C'"));
 		GetMesh()->SetAnimInstanceClass(PlayerABP.Class);*/

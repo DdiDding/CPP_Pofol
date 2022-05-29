@@ -45,8 +45,6 @@ void ACCharacter::PostInitializeComponents()
 	//reactionComponent = NewObject<UCReactionComponent>(this, UCReactionComponent::StaticClass());
 	//check(reactionComponent);
 	//reactionComponent->RegisterComponent();//동적으로 만들때 사용한다.
-
-
 	particleManagerComponent = NewObject<UCParticleManagerComponent>(this, UCParticleManagerComponent::StaticClass());
 	check(particleManagerComponent);
 	particleManagerComponent->RegisterComponent();
@@ -164,7 +162,7 @@ void ACCharacter::UpdateEssentialValue()
 {
 	currentVelocity = this->GetVelocity();
 	acceleration = (currentVelocity - previousVelocity) / deltaTime;
-	currentSpeed = currentVelocity.Size2D();
+	currentSpeed = currentVelocity.Size();
 
 	if(1.0f < currentSpeed)
 	{
@@ -391,7 +389,6 @@ void ACCharacter::UpdateRagDoll()
 			/*if(ragDollWeight < 1.f) ragDollWeight+= 0.07f;
 			else if (1.f < ragDollWeight) ragDollWeight = 1.f;*/
 			ragDollWeight = 1.f;
-			CLog::Log(ragDollWeight, "Update LayDown : ");
 			GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, true);
 			GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("pelvis"), ragDollWeight, false, true);
 			RagDoll_SetCapusleLoc();

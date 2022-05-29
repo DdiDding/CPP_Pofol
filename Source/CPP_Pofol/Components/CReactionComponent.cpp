@@ -185,7 +185,7 @@ EReactionType UCReactionComponent::ReactionHandle(const EReactionType & reaction
 	{
 		SetHittedState_Ground();
 	}
-	CLog::ScreenEnumLog("ReactionType : ", GetHittedState(), FColor::Green, 2.f);
+	//CLog::ScreenEnumLog("ReactionType : ", GetHittedState(), FColor::Green, 2.f);
 
 
 	/**	||상태와 상관없이 항상 똑같은 처리를 하는 리액션 타입의 처리|| */
@@ -253,7 +253,7 @@ void UCReactionComponent::KnockBackActor_Forward(float forwardAmount)
 void UCReactionComponent::KnockBackActor_Upper(float upAmount)
 {
 	owner->GetCharacterMovement()->StopMovementImmediately();
-	owner->LaunchCharacter(FVector(0, 0, upAmount), false, true);
+	owner->LaunchCharacter(FVector(0, 0, upAmount), false, false);
 }
 
 void UCReactionComponent::SetTimerForGravityInAirState()
@@ -275,7 +275,7 @@ void UCReactionComponent::SetOriginGravity()
 	if (owner->GetVelocity().Z < -400.f)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(gravityHandle);
-		owner->GetCharacterMovement()->GravityScale = 1.5f;
+		owner->GetCharacterMovement()->GravityScale = 1.f;
 	}
 }
 

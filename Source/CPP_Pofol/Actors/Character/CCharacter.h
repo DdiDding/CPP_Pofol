@@ -273,7 +273,7 @@ protected://member property
 	bool bRagdollOnGround{ false };
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Ragdoll Value")
-	FName hittedActionBone{ "spine_03" };
+	FName hittedActionBone{ "spine_01" };
 
 	//Ragdoll을 자연스럽게 해제하기 위한 핸들
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Ragdoll Value")

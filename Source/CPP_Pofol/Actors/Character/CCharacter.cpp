@@ -140,7 +140,6 @@ void ACCharacter::UpdateSubState()
 	{
 		if(hittedCurveValue <= 0.0f)
 		{
-			CLog::ScreenLog(hittedCurveValue, 5.f, FColor::Red, "curve value is ZERO!!! : ");
 			SET_STATE(SubState,None);
 			RagDollEnd();
 			return;
@@ -388,10 +387,11 @@ void ACCharacter::UpdateRagDoll()
 	{
 		if (float hittedCurveValue = animnInst->GetCurveValue(FName("Hitted_Curve")) == 2.0f)
 		{
-			//CLog::Log("Update LayDown");
-			if(ragDollWeight < 1.f) ragDollWeight+= 0.07f;
-			else ragDollWeight = 1.f;
-
+			
+			/*if(ragDollWeight < 1.f) ragDollWeight+= 0.07f;
+			else if (1.f < ragDollWeight) ragDollWeight = 1.f;*/
+			ragDollWeight = 1.f;
+			CLog::Log(ragDollWeight, "Update LayDown : ");
 			GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true, true);
 			GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("pelvis"), ragDollWeight, false, true);
 			RagDoll_SetCapusleLoc();
@@ -399,24 +399,29 @@ void ACCharacter::UpdateRagDoll()
 		}
 	}
 
-	ragDollWeight = 0.75f;
+	ragDollWeight = 0.7f;
 	GetMesh()->SetAllBodiesSimulatePhysics(false);
+	GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("hand_l"), true, true);
+	GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("hand_r"), true, true);
+	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("hand_l"), ragDollWeight, false, true);
+	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("hand_r"), ragDollWeight, false, true);
+	CLog::Log("Update Hitted NOrmal");
 	if (GET_STATE(MainState) == EMainState::AIR)
 	{
-		//CLog::Log("Update Hitted Air");
-		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("thigh_l"), true, true);
-		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("thigh_r"), true, true);
-		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_l"), ragDollWeight, false,true);
-		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_r"), ragDollWeight, false,true);
+		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("calf_l"), true, true);
+		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("calf_r"), true, true);
+		CLog::Log("Update Hitted Air");
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("calf_l"), 1.0f, false,true);
+		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("calf_r"), 1.0f, false,true);
 	}
-	else if (GET_STATE(MainState) == EMainState::GROUND)
-	{
-		//CLog::Log("Update Hitted Ground");
-		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_l"), 0.f, false, true);
-		GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("thigh_r"), 0.f, false, true);
-	}
-	GetMesh()->SetAllBodiesBelowSimulatePhysics(hittedActionBone, true, true);
-	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(hittedActionBone, ragDollWeight, false,true);
+	//else if (GET_STATE(MainState) == EMainState::GROUND)
+	//{
+	//	//CLog::Log("Update Hitted Ground");
+	//	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("calf_l"), 0.f, false, true);
+	//	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("calf_r"), 0.f, false, true);
+	//}
+	
+	
 	return;
 }
 
@@ -460,9 +465,7 @@ void ACCharacter::RagDoll_SetCapusleLoc()
 
 void ACCharacter::RagDollEnd()
 {
-	CLog::Log("End Ragdoll");
-
-	
+	//CLog::Log("End Ragdoll");
 	RagDollStartTimer();
 
 	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
@@ -490,7 +493,7 @@ void ACCharacter::RagDollEndTimer()
 		GetWorldTimerManager().ClearTimer(endRagdollHandle);
 		return;
 	}
-	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(hittedActionBone, ragDollWeight, false, true);
+	GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(FName("spine_03"), ragDollWeight, false, true);
 }
 
 void ACCharacter::GetCharacterState(

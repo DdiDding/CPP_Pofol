@@ -1,27 +1,36 @@
 #include "CPlayerAnimInstance.h"
 #include "Actors/Player/CPlayer.h"
 #include "Components/CWallRunComponent.h"
+#include "Util/CLog.h"
 
-void UCPlayerAnimInstance::NativeBeginPlay()
+void UCPlayerAnimInstance::NativeInitializeAnimation()
 {
-	Super::NativeBeginPlay();
-
+	Super::NativeInitializeAnimation();
 	ACPlayer * tempPlayer = Cast<ACPlayer>(owner);
 	if (tempPlayer != nullptr)
 	{
 		tempPlayer->GetWallRunComponent()->OnWallJump.BindUFunction(this, FName("OnJump_Animinstance"));
 		tempPlayer->GetWallRunComponent()->OnWallStart.BindUFunction(this, FName("OnLand_Animinstance"));
+		wrc = tempPlayer->GetWallRunComponent();
 	}
 }
 
-void UCPlayerAnimInstance::NativeInitializeAnimation()
+void UCPlayerAnimInstance::NativeBeginPlay()
 {
-	Super::NativeInitializeAnimation();
+	Super::NativeBeginPlay();
 }
 
 void UCPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
+	if (owner == nullptr || owner->GetCharacterStruct() == nullptr) return;
+
+	if (owner->GetSubState() == ESubState::WALLRUN)
+	{
+		if (wrc == nullptr) return;
+		wallRunRoll = wrc->GetMovingDegree();
+		CLog::Log("UpdateWallRun");
+	}
 }
 
 void UCPlayerAnimInstance::UpdateGround_Movement()

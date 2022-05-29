@@ -33,8 +33,8 @@ void UCReactionComponent::BeginPlay()
 	//Set Delegate
 	{
 		//owner->OnTakeAnyDamage.AddDynamic(this, &UCReactionComponent::TakeDamage);
+		//owner->OnTakeRadialDamage.AddDynamic(this, &UCReactionComponent::TakeRadialDamage);
 		owner->OnTakePointDamage.AddDynamic(this, &UCReactionComponent::TakePointDamage);
-		owner->OnTakeRadialDamage.AddDynamic(this, &UCReactionComponent::TakeRadialDamage);
 	}
 
 	//Set TimeLine for RimRight
@@ -74,15 +74,21 @@ void UCReactionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 void UCReactionComponent::TakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser)
 {
+	hittingActor = Cast<ACharacter>(DamageCauser);
+	if (hittingActor == nullptr) return;
+
+	/**	Reaction유형에 따른 처리를 하고 공격 성공여부를 반환 */
 	//CDO를 절대 변경할일이 없이 때문에 const_cast사용
 	const UCDamageType * tempDamageType = const_cast<UCDamageType*>(Cast<UCDamageType>(DamageType));
-	if (OnHitted.IsBound() == true) OnHitted.Execute(tempDamageType->reactionType);
-	//owner->GetCharacterStruct()->SetSubState_Hitted();
-	damagedActorLoc = DamageCauser->GetActorLocation();
+	EReactionType finalReaction = ReactionHandle(tempDamageType->reactionType, tempDamageType->knockBackPower);
+	if (finalReaction == EReactionType::NONE) return;
+	if (OnHitted.IsBound() == true) OnHitted.Execute(finalReaction);
+
+
+	KnockBackActor_Forward(tempDamageType->knockBackPower.X);
 
 	/**	RimRight 처리 */
 	StartRimRight();
-
 
 	/**	경직(Hit Stop) 처리 */
 	if (FMath::IsNearlyZero(tempDamageType->stiffness) == false)
@@ -91,9 +97,7 @@ void UCReactionComponent::TakePointDamage(AActor* DamagedActor, float Damage, cl
 		gameInstance->RequestAdjustTime(tempDamageType->stiffness, 0.0f, owner);
 	}
 
-	/**	Reaction유형에 넉벡처리, 등등 */
-	ReactionHandle(tempDamageType->reactionType, tempDamageType->knockBackPower);
-
+	
 
 	/**	맞는 파티클 생성 */
 	for (int i = 0;  i < tempDamageType->useParticleToEnemy.Num(); ++i)
@@ -170,46 +174,86 @@ void UCReactionComponent::DoingRimRight(float value)
 	* Knock Back
 ********************************************************************************************* */
 
-void UCReactionComponent::ReactionHandle(const EReactionType & reactionType, const FVector & knockBackAmount)
+EReactionType UCReactionComponent::ReactionHandle(const EReactionType & reactionType, const FVector & knockBackAmount)
 {
-	KnockBackActor_Forward(knockBackAmount.X);
+	/**	||공중인지 땅에있는지 확인|| */
+	if (owner->GetMainState() == EMainState::AIR)
+	{
+		SetHittedState_Air();
+	}
+	else if (owner->GetSubState() == ESubState::LAY_DOWN)
+	{
+		SetHittedState_Ground();
+	}
+	//CLog::ScreenEnumLog("ReactionType : ", GetHittedState(), FColor::Green, 2.f);
 
-	if(owner->GetMainState() == EMainState::AIR)
+
+	/**	||상태와 상관없이 항상 똑같은 처리를 하는 리액션 타입의 처리|| */
+	if (reactionType == EReactionType::SMASH_UPPER)
 	{
-		if (reactionType == EReactionType::SMASH_DOWN)
-		{
-			KnockBackActor_Upper(-3000.f);
-		}
-		else
-		{
-			KnockBackActor_Upper(250.f);
-			SetTimerForGravityInAirState();
-		}
+		SetHittedState_Air();
+		KnockBackActor_Upper(knockBackAmount.Z);
+		SetTimerForGravityInAirState();
+		return EReactionType::SMASH_UPPER;
 	}
-	if (owner->GetMainState() == EMainState::GROUND)
+	if (reactionType == EReactionType::SMASH_DOWN)
 	{
-		if (reactionType == EReactionType::SMASH_UPPER)
-		{
-			KnockBackActor_Upper(knockBackAmount.Z);
-			SetTimerForGravityInAirState();
-		}
-		if (reactionType == EReactionType::STRONG)
-		{
-			owner->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), damagedActorLoc));
-		}
+		SetHittedState_Ground();
+		KnockBackActor_Upper(-3000.f);
+		return EReactionType::SMASH_DOWN;
 	}
+	if (reactionType == EReactionType::STRONG)
+	{
+		float tempYaw = UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), hittingActor->GetActorLocation()).Yaw;
+		owner->SetActorRotation(FRotator(0.f, tempYaw, 0.f));
+		return EReactionType::STRONG;
+	}
+
+	bool canHittedBottom = CheckCanHittedBottom();
+	if (GetHittedState() == EHittedState::AIR)
+	{///공중에 떠있다면
+		KnockBackActor_Upper(300.f);
+		SetTimerForGravityInAirState();
+		return EReactionType::SMASH_UPPER;
+	}
+	if (owner->GetSubState() == ESubState::LAY_DOWN)
+	{///누워있다면
+		return EReactionType::LAY_DOWN_HIT;
+	}
+	if (GetHittedState() == EHittedState::GROUND)
+	{///서있다면
+		return EReactionType::NORMAL;
+	}
+
+	return EReactionType::NONE;
+	
+
+
+	//if(owner->GetMainState() == EMainState::AIR)
+	//{
+	//	KnockBackActor_Upper(250.f);
+	//	SetTimerForGravityInAirState();
+	//}
+	//if (owner->GetMainState() == EMainState::GROUND)
+	//{
+	//	
+	//	if (reactionType == EReactionType::STRONG)
+	//	{
+	//		owner->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(owner->GetActorLocation(), hittingActor->GetActorLocation()));
+	//	}
+	//}
 }
 
 void UCReactionComponent::KnockBackActor_Forward(float forwardAmount)
 {
-	FVector tempNorm = (owner->GetActorLocation() - damagedActorLoc).GetSafeNormal();
+	FVector tempNorm = (owner->GetActorLocation() - hittingActor->GetActorLocation()).GetSafeNormal2D();
 	owner->AddActorWorldOffset(tempNorm * forwardAmount);
 }
 
 void UCReactionComponent::KnockBackActor_Upper(float upAmount)
 {
 	owner->GetCharacterMovement()->StopMovementImmediately();
-	owner->LaunchCharacter(FVector(0, 0, upAmount), false, true);
+	owner->LaunchCharacter(FVector(0, 0, upAmount), false, false);
 }
 
 void UCReactionComponent::SetTimerForGravityInAirState()
@@ -228,12 +272,21 @@ void UCReactionComponent::SetTimerForGravityInAirState()
 
 void UCReactionComponent::SetOriginGravity()
 {
-	if (owner->GetVelocity().Z < 10.0f)
+	if (owner->GetVelocity().Z < -400.f)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(gravityHandle);
-		owner->GetCharacterMovement()->GravityScale = 3.0f;
+		owner->GetCharacterMovement()->GravityScale = 1.f;
 	}
 }
+
+bool UCReactionComponent::CheckCanHittedBottom()
+{
+	float hittingActorLocZ = hittingActor->GetMesh()->GetBoneLocation(FName("pelvis")).Z;
+	float ownerLocZ = owner->GetMesh()->GetBoneLocation(centerBone).Z;
+
+	return ownerLocZ < hittingActorLocZ ? true : false;
+}
+
 
 //void UCReactionComponent::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 //{
@@ -244,21 +297,15 @@ void UCReactionComponent::SetOriginGravity()
 //}
 
 //이거 아직 안씀
-void UCReactionComponent::TakeRadialDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, FVector Origin, FHitResult HitInfo, AController* InstigatedBy, AActor* DamageCauser)
-{
-	//if (OnHitted.IsBound() == true) OnHitted.Execute();
-
-	//CDO를 절대 변경할일이 없이 때문에 const_cast사용
-	/*const UCDamageType * tempDamageType = const_cast<UCDamageType*>(Cast<UCDamageType>(DamageType));
-	gameInstance->RequestAdjustTime(tempDamageType->stiffness, 0.0f, owner);
-
-	damagedActorLoc = DamageCauser->GetActorLocation();
-
-	StartShakeActor();*/
-}
-
-
-void UCReactionComponent::SaveOwnerMaterial()
-{
-
-}
+//void UCReactionComponent::TakeRadialDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, FVector Origin, FHitResult HitInfo, AController* InstigatedBy, AActor* DamageCauser)
+//{
+//	//if (OnHitted.IsBound() == true) OnHitted.Execute();
+//
+//	//CDO를 절대 변경할일이 없이 때문에 const_cast사용
+//	/*const UCDamageType * tempDamageType = const_cast<UCDamageType*>(Cast<UCDamageType>(DamageType));
+//	gameInstance->RequestAdjustTime(tempDamageType->stiffness, 0.0f, owner);
+//
+//	damagedActorLoc = DamageCauser->GetActorLocation();
+//
+//	StartShakeActor();*/
+//}

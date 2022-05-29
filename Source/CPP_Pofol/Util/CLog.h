@@ -14,6 +14,20 @@ class CPP_POFOL_API CLog
 {
 public:
 
+	template <typename T>
+	static void EnumLog(FString introduction, T data)
+	{
+		introduction += *UEnum::GetDisplayValueAsText(data).ToString();
+		UE_LOG(MyLog, Warning, TEXT("%s"), *introduction);
+	}
+
+	template <typename T>
+	static void ScreenEnumLog(FString introduction, T data, FColor color = FColor::Red, float time = 0.f)
+	{
+		introduction += *UEnum::GetDisplayValueAsText(data).ToString();
+		GEngine->AddOnScreenDebugMessage(-1, time, color, *introduction);
+	}
+
 	static void Log(int data,	FString introduction = FString(TEXT(" ")));
 	static void Log(float data, FString introduction = FString(TEXT(" ")));
 	static void Log(FVector2D data, FString introduction = FString(TEXT(" ")));

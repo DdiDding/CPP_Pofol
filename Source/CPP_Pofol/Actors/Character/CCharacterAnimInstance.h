@@ -52,9 +52,10 @@ class CPP_POFOL_API UCCharacterAnimInstance : public UAnimInstance
 ////////////////////////////////////////////////////////////////////////////////
 public://virtual function
 
+	//실행순서 Init -> Update -> Begin
 	virtual void NativeInitializeAnimation() override;
-	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+	virtual void NativeBeginPlay() override;
 
 
 ////////////////////////////////////////////////////////////////////////////////

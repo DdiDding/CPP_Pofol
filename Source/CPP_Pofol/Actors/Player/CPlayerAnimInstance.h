@@ -4,6 +4,7 @@
 #include "Actors/Character/CCharacterAnimInstance_HumanType.h"
 #include "CPlayerAnimInstance.generated.h"
 
+class ACPlayer;
 class UCWallRunComponent;
 /**
  * 

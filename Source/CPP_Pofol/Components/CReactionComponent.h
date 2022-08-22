@@ -119,7 +119,7 @@ private://member property
 	bool bDoUpdateShake{ false };
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "ShakeActor", meta = (AllowPrivateAccess = true))
-	float shakeAmount{ 6.5f };
+	float shakeAmount{ 5.5f };
 
 	//쉐이크흔들기전의 기존 Relative Location
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "ShakeActor", meta = (AllowPrivateAccess = true))

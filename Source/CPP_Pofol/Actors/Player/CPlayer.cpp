@@ -85,10 +85,12 @@ void ACPlayer::UpdateProperty()
 //Input Key function
 void ACPlayer::Move_FB(float axisValue)
 {
+	if (characterStructs == nullptr) return;
+	if (GET_STATE(SubState) == ESubState::ATTACK) return;
+
 	virtualAcceleration.X = axisValue;
 	FVector Direction;
 
-	if (characterStructs == nullptr) return;
 	if (GET_STATE(SubState) == ESubState::NONE)
 	{
 		Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X);
@@ -105,10 +107,12 @@ void ACPlayer::Move_FB(float axisValue)
 
 void ACPlayer::Move_RL(float axisValue)
 {
+	if (characterStructs == nullptr) return;
+	if (GET_STATE(SubState) == ESubState::ATTACK) return;
+
 	virtualAcceleration.Y = axisValue;
 	FVector Direction;
 
-	if (characterStructs == nullptr) return;
 	if (GET_STATE(SubState) == ESubState::NONE)
 	{
 		Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);

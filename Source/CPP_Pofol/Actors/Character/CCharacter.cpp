@@ -127,7 +127,7 @@ void ACCharacter::UpdateSubState()
 	if (animnInst == nullptr) return;
 
 	float hittedCurveValue = animnInst->GetCurveValue(FName("Hitted_Curve"));
-	CLog::ScreenLog(hittedCurveValue, 0.f, FColor::Red, "curve value : ");
+	//CLog::ScreenLog(hittedCurveValue, 0.f, FColor::Red, "curve value : ");
 	if (GET_STATE(SubState) == ESubState::NONE && 0.0f < hittedCurveValue)
 	{
 		SET_STATE(SubState, Hitted);
